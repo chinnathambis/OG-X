@@ -13,7 +13,7 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
 1. **Header tag overlaps TradingView's symbol line → do it the Predictum way** (reported 15 Oct 2026; Predictum screenshot: "Predictūm v.2.3.7 BTCUSDT.P - Binance Futures | 45 min timeframe" shown as the indicator's own line in TradingView's legend, directly under the symbol line, inside the normal legend box).
    - Remove the top-left header table (it prints over TradingView's symbol line).
    - Use TradingView's legend (status line) instead. Set the indicator short title to "OG Breakout v2.x". Show only the Strategy input in the status line (`display = display.status_line`) and hide every other input (`display = display.none`), so the legend reads like "OG Breakout v2.3 BTCUSDT.P - Binance Futures | 45 min timeframe".
-   - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P1 #2). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
+   - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P0 #4). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
    - No extra text on the chart.
 2. **Helper: big "+" on the upcoming trade, like Predictum** (requested 15 Oct 2026; Predictum v2.1.5 CHZ screenshot).
    - Draw a normal-size "+" cross (not oversized, per 15 Oct 2026 feedback) a few bars to the right of the last candle, at the next entry price: green for the next Long, red for the next Short. Show both when both are possible.
@@ -36,15 +36,7 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - Works in both themes, following the existing "Light theme" switch. Light: teal #5e9fa3 / pink #f48fb1 at ~55 % transparency (X look). Dark (match the API3 X screenshot): deep teal box (≈ #26a69a at ~85 % transparency) for longs and deep maroon (≈ #f23645 at ~80 % transparency) for shorts, so candles and TP lines stay readable.
    - Mocks: `research/mocks/approved/p0-3_x_background_light.png`, `research/mocks/approved/p0-3_x_background_dark.png`.
    - Build note: draw it as a box from the SL to a far price. Check in TradingView that the far edge doesn't squash the price scale. If it does, cap the box at the highest high (Long) or lowest low (Short) of the visible trade plus a margin.
-
-## P1: agreed features
-1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
-   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
-   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
-   - Tooltip: low leverage only (1–2×).
-   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
-
-2. **Coin presets using the original Predictum strategies** (added 15 Oct 2026; top-coin scan done 15 Oct 2026, 40 coins, results in `research/orig_strategies_top_coins.csv`). Add a Strategy menu entry per qualifying coin; Auto picks it on that coin. A coin qualifies only if the strategy made money in both 2024–25 and 2026 (Binance futures, 45m, 1×, fees 0.08 %). One strategy per coin (the best one). Strategies: ETH = 450 / 0 % / 8 %, BTC v.5 = 210 / 0 % / 6 %, BTC v2.2 = 180 / 0.6 % / 6 %.
+4. **12 coin presets using the original Predictum strategies** (moved up from P1 on 15 Oct 2026; top-coin scan done 15 Oct 2026, 40 coins, results in `research/orig_strategies_top_coins.csv`). Add a Strategy menu entry per qualifying coin; Auto picks it on that coin. A coin qualifies only if the strategy made money in both 2024–25 and 2026 (Binance futures, 45m, 1×, fees 0.08 %). One strategy per coin (the best one). Strategies: ETH = 450 / 0 % / 8 %, BTC v.5 = 210 / 0 % / 6 %, BTC v2.2 = 180 / 0.6 % / 6 %.
    - **Add (✓):**
      - ZECUSDT.P (BTC v.5): +1244 % (2024–25 +207 %, 2026 +338 %), DD 60 %, PF 3.5. Mostly the big 2025–26 ZEC trend.
      - DOGEUSDT.P (ETH): +328 % (+249 %, +23 %), DD 45 %
@@ -61,6 +53,27 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
      - ARBUSDT.P (BTC v2.2): +180 % (2024–25 only +1 %, +177 %), DD 49 %
    - **Not added:** AKE (ETH +1385 %, but listed Sep 2025 with only 4 trades before 2026 and DD 76 %; candidate for the P2 "Experimental" group), PUMP (+18 %, DD 52 %, short history).
    - **Did not qualify (lost money in one or both periods on all three strategies):** BTC, BNB, ADA, LINK, AVAX, HYPE, TAO, EGLD, ARC, BCH, BTW, ENA, FIL, INJ, LTC, NEAR, ONDO, OP, PYTH, Q, STRK, TRUMP, WAL, WLD, ZEREBRO, ZK.
+   - **Naming (Predictum convention, same as P0 #1):** "<SYMBOL>.P - Binance Futures | 45 min timeframe". The strategy used stays internal and is shown in the tooltip, not the name. The menu order follows the list below. Existing BTC entries keep their suffix: "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2) and "… | 45 min timeframe | v.5".
+     - ZECUSDT.P - Binance Futures | 45 min timeframe
+     - DOGEUSDT.P - Binance Futures | 45 min timeframe
+     - QNTUSDT.P - Binance Futures | 45 min timeframe
+     - ETHUSDT.P - Binance Futures | 45 min timeframe
+     - 1000PEPEUSDT.P - Binance Futures | 45 min timeframe
+     - XRPUSDT.P - Binance Futures | 45 min timeframe
+     - AAVEUSDT.P - Binance Futures | 45 min timeframe
+     - SOLUSDT.P - Binance Futures | 45 min timeframe
+     - PAXGUSDT.P - Binance Futures | 45 min timeframe
+     - SUIUSDT.P - Binance Futures | 45 min timeframe
+     - UNIUSDT.P - Binance Futures | 45 min timeframe
+     - ARBUSDT.P - Binance Futures | 45 min timeframe
+   - The ⚠ (SUI, UNI, ARB) is kept out of the name so the legend stays clean. It appears in the input tooltip and as a small note in the stats table.
+
+## P1: agreed features
+1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
+   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
+   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
+   - Tooltip: low leverage only (1–2×).
+   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
 
 ## P2: ideas
 - **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
