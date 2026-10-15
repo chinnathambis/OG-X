@@ -1,13 +1,11 @@
 //@version=6
-// OG Breakout v2.3 — Original Predictum recreation (15 Oct 2026). Settings laid out like Predictūm v2.2.3 / v2.4.2
-// (General settings, Helper settings) plus the Statistics block of Predictūm PRO. Built from v1.0 / v2.0; older versions in archive/.
-// Engine (fixed on 45m, like Predictum): Donchian channel breakout, intrabar touch entry, one position at a time,
+// OG X v.2.4.0 + Alerts (16 Oct 2026)
+// Engine (fixed on 45m): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
-// Reproduces Predictum's 50-signal BTC history exactly (see RESEARCH.md).
-// v2.3: legend header like Predictum, 12 coin presets, "+" helper with next-signal tag, Predictum X background.
-indicator("OG Breakout v2.3", "OG Breakout v2.3", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+// Strategy presets per coin, a "+" helper for the next entry, and a statistics block. Older versions in archive/.
+indicator("OG X v.2.4.0 + Alerts", "OG X v.2.4.0 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
 
-// ─────────────────────────────── Strategy menu (Predictum naming; shown in TradingView's legend)
+// ─────────────────────────────── Strategy menu (shown in TradingView's legend)
 const string O_AUTO = "Auto"
 const string O_BTC  = "BTCUSDT.P - Binance Futures | 45 min timeframe"
 const string O_BTC5 = "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5"
@@ -25,7 +23,7 @@ const string O_UNI  = "UNIUSDT.P - Binance Futures | 45 min timeframe"
 const string O_ARB  = "ARBUSDT.P - Binance Futures | 45 min timeframe"
 const string O_CUS  = "Custom"
 
-const string TT_STRAT = "Predictum's original strategies (all on 45 min):\n" +
+const string TT_STRAT = "Original strategies (all on 45 min):\n" +
      "• BTC v2.2 = 180 bars / 0.6 % buffer / 6 % stop\n• BTC v.5 = 210 / 0 % / 6 %\n• ETH = 450 / 0 % / 8 %\n\n" +
      "Coin presets (Binance futures, Oct 2024 – Oct 2026, 1×, fees):\n" +
      "ZEC → v.5 · DOGE, QNT, ETH, XRP, AAVE → ETH · 1000PEPE, SOL → v.5 · PAXG → v2.2\n" +
@@ -36,13 +34,12 @@ strategyIn = input.string(O_AUTO, "Strategy", options = [O_AUTO, O_BTC, O_BTC5, 
 
 G_GEN = "GENERAL SETTINGS"
 bgOn     = input.bool(true,  "Highlight the background", group = G_GEN, inline = "bg", display = display.none)
-bgStyle  = input.string("SL to edge (Predictum X)", "", options = ["SL to edge (Predictum X)", "Full height (Predictum)"], group = G_GEN, inline = "bg", display = display.none,
-     tooltip = "SL to edge: the trade's shading starts at the stop line and runs to the profit side (Predictum X). Full height: the whole column is shaded. With 'Use the opposite signal as a Stop-Loss' there is no stop line, so the full height is used.")
-tpLblOn  = input.bool(false, "Show take-profit labels", group = G_GEN, display = display.none)
+bgStyle  = input.string("SL to edge", "", options = ["SL to edge", "Full height"], group = G_GEN, inline = "bg", display = display.none,
+     tooltip = "SL to edge: the trade's shading starts at the stop line and runs to the profit side. Full height: the whole column is shaded. With 'Use the opposite signal as a Stop-Loss' there is no stop line, so the full height is used.")
 entLblOn = input.bool(false, "Additional labels for position entry", group = G_GEN, display = display.none)
 timeOn   = input.bool(false, "Show position opening time", group = G_GEN, display = display.none)
 largeOn  = input.bool(true,  "Large Size of position entry/peak profit labels", group = G_GEN, display = display.none)
-dcaOn    = input.bool(false, "Show averaging levels", group = G_GEN, display = display.none, tooltip = "Averaging (DCA) levels at 7 / 15 / 25 % against the entry, as used by Predictum's DCA strategies. Display only: they are not used in the statistics.")
+dcaOn    = input.bool(false, "Show averaging levels", group = G_GEN, display = display.none, tooltip = "Averaging (DCA) levels at 7 / 15 / 25 % against the entry, as used by DCA strategies. Display only: they are not used in the statistics.")
 oppSlOn  = input.bool(false, "Use the opposite signal as a Stop-Loss", group = G_GEN, display = display.none, tooltip = "No fixed stop-loss: every position is held until the opposite signal.")
 
 G_HLP = "HELPER SETTINGS"
@@ -65,13 +62,13 @@ bufU     = input.float(0.6, "Entry buffer %", minval = 0.0, step = 0.1, group = 
 slU      = input.float(6.0, "Stop-loss %", minval = 0.1, step = 0.5, group = G_CUS, display = display.none)
 ladderU  = input.string("0.3, 1, 2, 3, 10", "Take-profits % (comma separated)", group = G_CUS, display = display.none)
 
-G_EXT = "EXTRA (not in Predictum)"
+G_EXT = "EXTRA"
 levIn    = input.float(10, "Leverage for % labels", minval = 1, group = G_EXT, display = display.none)
 realOn   = input.bool(false, "Show realised results (exit at stop or next signal, 1×)", group = G_EXT, display = display.none)
 feeIn    = input.float(0.08, "Fees per trade % (realised results)", minval = 0, step = 0.01, group = G_EXT, display = display.none)
 
 // ─────────────────────────────── Strategy resolution
-string ENG_TF    = "45"      // Predictum's engine timeframe
+string ENG_TF    = "45"      // engine timeframe
 float  READY_PCT = 0.5       // Helper: 'Get ready' distance %
 string coinU = str.replace_all(str.replace_all(syminfo.ticker, ".P", ""), "PERP", "")
 string autoPick = switch coinU
@@ -107,6 +104,9 @@ string kind = switch stratEff
     O_AAVE => "eth"
     O_SUI  => "eth"
     => "custom"
+// a preset picked by hand for another coin: warn (e.g. the UNI preset on a 1000PEPE chart)
+string presetCoin = kind == "custom" ? "" : str.split(stratEff, ".P")[0]
+string mismatchNote = presetCoin != "" and presetCoin != coinU ? "⚠ Preset is for " + presetCoin + ".P, chart is " + coinU + ".P" : ""
 string weakNote = stratEff == O_SUI ? "⚠ SUI preset: weak in 2026 (+1 %)" : stratEff == O_UNI ? "⚠ UNI preset: deep drawdown (66 %)" : stratEff == O_ARB ? "⚠ ARB preset: flat in 2024–25 (+1 %)" : ""
 int N = switch kind
     "v22" => 180
@@ -141,16 +141,17 @@ int nTP = TPS.size()
 // ─────────────────────────────── Theme & sizes
 color colL  = #26a69a
 color colS  = #ef5350
-color colTP = #8bc34a
+color colTP = #4caf50
 color colSL = #ff1744
 color colHl = #2962ff
-// Predictum X trade background: deeper, more transparent tints on the dark theme so candles stay readable
+// trade background: deeper, more transparent tints on the dark theme so candles stay readable
 color bxL   = lightOn ? color.new(#5e9fa3, 55) : color.new(#26a69a, 85)
 color bxS   = lightOn ? color.new(#f48fb1, 55) : color.new(#f23645, 80)
-bool  xBg   = bgOn and bgStyle == "SL to edge (Predictum X)" and not oppSlOn
+bool  xBg   = bgOn and bgStyle == "SL to edge" and not oppSlOn
 color txCol = lightOn ? #131722 : color.white
 string szS  = smallOn ? size.tiny : size.small
 string szL  = largeOn ? (smallOn ? size.normal : size.large) : (smallOn ? size.small : size.normal)
+string szT  = szL   // one size for every tag (entry, peak, blue tags, Get ready, next-position labels); only Long/Short use szS
 
 // ─────────────────────────────── Channel (no repaint: only closed 45m bars are used)
 bool tfOK = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(ENG_TF)
@@ -168,7 +169,7 @@ var int   pkBar  = na
 var bool  slHit  = false
 var int   tpHit  = 0      // targets reached before the stop
 var label pkLbl  = na
-var box   trBox  = na     // Predictum X background of the current trade
+var box   trBox  = na     // background of the current trade (stop to profit side)
 var array<line> curLines = array.new<line>()
 var bool  armL = true
 var bool  armS = true
@@ -227,8 +228,9 @@ if newSig
         stTp.push(tpHit)
         stSl.push(sl2)
         stR.push(r)
-        for l in curLines
-            l.set_x2(bar_index)
+        if not slHit
+            for l in curLines
+                l.set_x2(bar_index)
         if not na(trBox) and not slHit
             trBox.set_right(bar_index)
         if not na(pkLbl)
@@ -255,23 +257,21 @@ if newSig
     if entLblOn or timeOn
         string txt = (entLblOn ? (d == 1 ? "LONG" : "SHORT") + " was opened at " + fmtPx(px) : "") + (entLblOn and timeOn ? "\n" : "") +
              (timeOn ? "Time: " + str.format_time(time, "d/M/yyyy HH:mm", "UTC") + " UTC" : "")
-        label.new(bar_index, px, txt, style = label.style_label_right, color = color.new(d == 1 ? colL : colS, 15), textcolor = color.white, size = szL)
+        label.new(bar_index, px, txt, style = label.style_label_right, color = color.new(d == 1 ? colL : colS, 15), textcolor = color.white, size = szT)
     if curOn
         for p in TPS
-            curLines.push(line.new(bar_index, tpPrice(d, px, p), bar_index + 1, tpPrice(d, px, p), color = colTP, style = line.style_dotted, width = 1))
+            curLines.push(line.new(bar_index, tpPrice(d, px, p), bar_index + 1, tpPrice(d, px, p), color = colTP, width = 2))
         if not oppSlOn
             curLines.push(line.new(bar_index, slPrice(d, px), bar_index + 1, slPrice(d, px), color = colSL, width = 2))
     if dcaOn
         for q in DCA
             float dp = d == 1 ? px * (1 - q) : px * (1 + q)
             curLines.push(line.new(bar_index, dp, bar_index + 1, dp, color = color.new(color.yellow, 20), style = line.style_dotted))
-    pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = szL)
+    pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = szT)
     // first bar's progress (targets can already be reached on the entry candle)
     float fav0 = peakPct(d, px, pkPx)
     while tpHit < nTP and fav0 >= TPS.get(tpHit)
         tpHit += 1
-        if tpLblOn
-            label.new(bar_index, tpPrice(d, px, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
         alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
     // alert with full trade plan
     string tpTxt = ""
@@ -285,8 +285,6 @@ else if dir != 0 and not na(ent)
         float fav = peakPct(dir, ent, dir == 1 ? high : low)
         while tpHit < nTP and fav >= TPS.get(tpHit)
             tpHit += 1
-            if tpLblOn
-                label.new(bar_index, tpPrice(dir, ent, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
             alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
     bool wasOpen = not slHit
     if slNow
@@ -296,7 +294,10 @@ else if dir != 0 and not na(ent)
     if newPk
         pkPx := dir == 1 ? high : low
         pkBar := bar_index
-    // X background: runs from the entry candle to the exit candle (stop or next signal)
+    // lines and background run from the entry candle to the exit candle (stop or next signal)
+    if wasOpen
+        for l in curLines
+            l.set_x2(bar_index)
     if not na(trBox) and wasOpen
         trBox.set_right(bar_index)
         if newPk and not slHit
@@ -305,25 +306,20 @@ else if dir != 0 and not na(ent)
                 trBox.set_top(f1)
             else
                 trBox.set_bottom(f1)
-    for l in curLines
-        l.set_x2(bar_index)
 
 // peak label follows the best price
 if not na(pkLbl) and dir != 0 and not na(ent)
     pkLbl.set_xy(pkBar, pkPx)
     pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)))
 
-// ─────────────────────────────── 4) Helper: 'Get ready' (arrow + grey text, ▶ on the alert candle)
-color gryTx = lightOn ? #787b86 : #b2b5be
+// ─────────────────────────────── 4) Helper: 'Get ready' pill (blue, triangle)
 if helperOn and tfOK and not newSig
     if pos != 1 and not na(upL) and armL and high >= upL * (1 - READY_PCT / 100)
-        label.new(bar_index, low, "Get ready to Long", style = label.style_arrowup, color = colHl, textcolor = gryTx, size = szS)
-        label.new(bar_index, close, "▶", style = label.style_none, textcolor = colHl, size = size.tiny)
+        label.new(bar_index, low, "▲ Get ready", style = label.style_label_up, color = colHl, textcolor = color.white, size = szT)
         alert("#" + cleanSym() + " | Get ready to Long · entry " + fmtPx(upL), alert.freq_once_per_bar)
         armL := false
     if pos != -1 and not na(dnL) and armS and low <= dnL * (1 + READY_PCT / 100)
-        label.new(bar_index, high, "Get ready to Short", style = label.style_arrowdown, color = colS, textcolor = gryTx, size = szS)
-        label.new(bar_index, close, "▶", style = label.style_none, textcolor = colHl, size = size.tiny)
+        label.new(bar_index, high, "▼ Get ready", style = label.style_label_down, color = colHl, textcolor = color.white, size = szT)
         alert("#" + cleanSym() + " | Get ready to Short · entry " + fmtPx(dnL), alert.freq_once_per_bar)
         armS := false
 if not na(upL) and close < upL * (1 - 2 * READY_PCT / 100)
@@ -331,40 +327,53 @@ if not na(upL) and close < upL * (1 - 2 * READY_PCT / 100)
 if not na(dnL) and close > dnL * (1 + 2 * READY_PCT / 100)
     armS := true
 
+// which next entries are shown: during a trade only the opposite one; with no open trade only the closer one
+bool flat   = pos == 0
+bool nearL  = not na(upL) and not na(dnL) ? (upL / close - 1) <= (1 - dnL / close) : not na(upL)
+bool showL  = helperOn and tfOK and not na(upL) and (pos == -1 or (flat and nearL))
+bool showS  = helperOn and tfOK and not na(dnL) and (pos == 1 or (flat and not nearL))
+float atrV  = ta.atr(14)
+
 // "+" at the next entry, blue tag, next-position SL/TP (all redrawn on the last bar only)
 var array<label> nxtLbls  = array.new<label>()
 var array<line>  nxtLines = array.new<line>()
-int PLUS_X = 3   // bars to the right of the live candle
+int PLUS_X = 6   // bars to the right of the live candle (centre of the "+")
+int PLUS_W = 4   // half width of the "+" in bars
 // d = side of the next signal, e = its price
 drawNext(int d, float e) =>
     color sc = d == 1 ? colL : colS
-    nxtLbls.push(label.new(bar_index + PLUS_X, e, "+", style = label.style_none, textcolor = sc, size = size.large))
-    bool flip = pos == -d and not na(ent)   // an open trade that this signal would close
-    if flip
+    // big "+" drawn from two thick lines so it is visible at any zoom
+    float hh = nz(atrV, e * 0.003) * 1.6
+    nxtLines.push(line.new(bar_index + PLUS_X - PLUS_W, e, bar_index + PLUS_X + PLUS_W, e, color = sc, width = 4))
+    nxtLines.push(line.new(bar_index + PLUS_X, e - hh, bar_index + PLUS_X, e + hh, color = sc, width = 4))
+    string nm = d == 1 ? "Long" : "Short"
+    string txt = ""
+    if pos == -d and not na(ent)
+        // an open trade that this signal would close
         if tagOn
             int cur = -d
             float pnl = (e / ent - 1) * cur * 100
             bool inside = oppSlOn or (cur == 1 ? e > slPrice(cur, ent) : e < slPrice(cur, ent))
-            string nm = d == 1 ? "Long" : "Short"
             string cn = cur == 1 ? "Long" : "Short"
-            string txt = "Next " + nm + " at " + fmtPx(e) + "\n" + (inside ? "this " + cn + " closes " + (pnl >= 0 ? "+" : "") + str.tostring(pnl, "0.0") + "% there" :
+            txt := "Next " + nm + " at " + fmtPx(e) + "\n" + (inside ? "this " + cn + " closes " + (pnl >= 0 ? "+" : "") + str.tostring(pnl, "0.0") + "% there" :
                  "your stop (−" + str.tostring(SL * 100, "0.#") + "%) hits first")
-            nxtLbls.push(label.new(bar_index + PLUS_X + 2, e, txt, style = label.style_label_left, color = colHl, textcolor = color.white,
-                 size = szS, textalign = text.align_left, text_font_family = font.family_monospace))
     else
-        // no open trade on the other side: Predictum-style blue price callout above-right of the "+"
-        nxtLbls.push(label.new(bar_index + PLUS_X + 1, e, fmtPx(e), style = d == 1 ? label.style_label_lower_left : label.style_label_upper_left,
-             color = colHl, textcolor = color.white, size = szS, text_font_family = font.family_monospace))
+        // no open trade: entry price and distance from the current price
+        float dist = (e / close - 1) * 100
+        txt := "Next " + nm + " at " + fmtPx(e) + "\n" + (dist >= 0 ? "+" : "") + str.tostring(dist, "0.0") + "% from price"
+    if txt != ""
+        nxtLbls.push(label.new(bar_index + PLUS_X + PLUS_W + 2, e, txt, style = label.style_label_left, color = colHl, textcolor = color.white,
+             size = szT, textalign = text.align_left, text_font_family = font.family_monospace))
     if nextOn
-        int x2 = bar_index + 14
+        int x2 = bar_index + 24
         nxtLines.push(line.new(bar_index, e, x2, e, color = sc, width = 2))
-        nxtLbls.push(label.new(x2, e, (d == 1 ? "Long" : "Short") + " entry", style = label.style_label_left, color = sc, textcolor = color.white, size = size.tiny))
+        nxtLbls.push(label.new(x2, e, nm + " entry", style = label.style_label_left, color = sc, textcolor = color.white, size = szT))
         if not oppSlOn
             nxtLines.push(line.new(bar_index, slPrice(d, e), x2, slPrice(d, e), color = colSL, width = 2))
-            nxtLbls.push(label.new(x2, slPrice(d, e), "Stop-loss", style = label.style_label_left, color = colSL, textcolor = color.white, size = size.tiny))
+            nxtLbls.push(label.new(x2, slPrice(d, e), "Stop-loss", style = label.style_label_left, color = colSL, textcolor = color.white, size = szT))
         for [i, p] in TPS
-            nxtLines.push(line.new(bar_index, tpPrice(d, e, p), x2, tpPrice(d, e, p), color = colTP, style = line.style_dotted))
-            nxtLbls.push(label.new(x2, tpPrice(d, e, p), "Take-profit #" + str.tostring(i + 1), style = label.style_label_left, color = colTP, textcolor = color.white, size = size.tiny))
+            nxtLines.push(line.new(bar_index, tpPrice(d, e, p), x2, tpPrice(d, e, p), color = colTP, width = 2))
+            nxtLbls.push(label.new(x2, tpPrice(d, e, p), "Take-profit #" + str.tostring(i + 1), style = label.style_label_left, color = colTP, textcolor = color.white, size = szT))
 if barstate.islast
     for l in nxtLbls
         l.delete()
@@ -372,23 +381,34 @@ if barstate.islast
         l.delete()
     nxtLbls.clear()
     nxtLines.clear()
-    if helperOn and tfOK
-        if pos != 1 and not na(upL)
-            drawNext(1, upL)
-        if pos != -1 and not na(dnL)
-            drawNext(-1, dnL)
+    if showL
+        drawNext(1, upL)
+    if showS
+        drawNext(-1, dnL)
 
-// price-scale markers at the next-signal prices (like TradingView's own price labels)
-plot(helperOn and tfOK and pos != 1 ? upL : na, "Next Long", color = colL, display = display.price_scale, editable = false)
-plot(helperOn and tfOK and pos != -1 ? dnL : na, "Next Short", color = colS, display = display.price_scale, editable = false)
+// price-scale values (shown by TradingView's "Indicators and financials → name and value labels" scale setting)
+plot(showL ? upL : na, "Next Long", color = colL, display = display.price_scale, editable = false)
+plot(showS ? dnL : na, "Next Short", color = colS, display = display.price_scale, editable = false)
+bool tradeOpen = dir != 0 and not na(ent) and not slHit
+tpAt(int k) =>
+    float v = na
+    if tradeOpen and nTP > k
+        v := tpPrice(dir, ent, TPS.get(k))
+    v
+plot(tpAt(0), "TP1", color = colTP, display = display.price_scale, editable = false)
+plot(tpAt(1), "TP2", color = colTP, display = display.price_scale, editable = false)
+plot(tpAt(2), "TP3", color = colTP, display = display.price_scale, editable = false)
+plot(tpAt(3), "TP4", color = colTP, display = display.price_scale, editable = false)
+plot(tpAt(4), "TP5", color = colTP, display = display.price_scale, editable = false)
+plot(tradeOpen and not oppSlOn ? slPrice(dir, ent) : na, "SL", color = colSL, display = display.price_scale, editable = false)
 
 // ─────────────────────────────── Background & alerts
 bool fullBg = bgOn and not xBg
 bgcolor(fullBg and dir == 1 ? color.new(colL, lightOn ? 88 : 80) : fullBg and dir == -1 ? color.new(colS, lightOn ? 88 : 80) : na, title = "Background")
-alertcondition(longSig, "Long", "OG Breakout: LONG on {{ticker}} at {{close}}")
-alertcondition(shortSig, "Short", "OG Breakout: SHORT on {{ticker}} at {{close}}")
+alertcondition(longSig, "Long", "OG X: LONG on {{ticker}} at {{close}}")
+alertcondition(shortSig, "Short", "OG X: SHORT on {{ticker}} at {{close}}")
 
-// ─────────────────────────────── 5) Warning (like Predictum). The header is TradingView's legend: indicator name + Strategy input.
+// ─────────────────────────────── 5) Warning. The header is TradingView's legend: indicator name + Strategy input.
 var table wn = table.new(position.middle_center, 1, 4, bgcolor = color.new(#d32f2f, 10))
 if barstate.islast
     wn.clear(0, 0, 0, 3)
@@ -396,14 +416,14 @@ if barstate.islast
         wn.cell(0, 0, "WARNING!\nYour chart is configured incorrectly.", text_color = color.white, text_size = size.normal)
         wn.cell(0, 1, "HOW TO SET IT UP CORRECTLY?", text_color = color.white, text_size = size.normal)
         wn.cell(0, 2, "✅ Set the timeframe to 45 minutes (or lower).", text_color = color.white, text_size = size.normal)
-        wn.cell(0, 3, strategyIn == O_AUTO and stratEff == O_CUS ? "ℹ No Predictum strategy for this coin: Custom settings are used." : "", text_color = color.white, text_size = size.small)
+        wn.cell(0, 3, strategyIn == O_AUTO and stratEff == O_CUS ? "ℹ No preset for this coin: Custom settings are used." : "", text_color = color.white, text_size = size.small)
 
-// ─────────────────────────────── 6) Statistics block (Predictum style)
+// ─────────────────────────────── 6) Statistics block
 emo(float v) => v < 0 ? "🚫" : v < 10 ? "🤔" : v < 20 ? "😚" : v < 30 ? "😎" : v < 50 ? "🙌" : v < 200 ? "🔥" : "🎰"
 var table tb = table.new(statsPos == "Top R" ? position.top_right : statsPos == "Bottom R" ? position.bottom_right : statsPos == "Top L" ? position.top_left : position.bottom_left,
-     1, 116, bgcolor = lightOn ? color.new(#c8e6c9, 0) : statsBg, border_width = 0)
+     1, 117, bgcolor = lightOn ? color.new(#c8e6c9, 0) : statsBg, border_width = 0)
 if barstate.islast
-    tb.clear(0, 0, 0, 115)
+    tb.clear(0, 0, 0, 116)
     if statsOn and tfOK
         // newest first: open trade, then closed trades
         array<int>   lT = array.new<int>()
@@ -430,6 +450,9 @@ if barstate.islast
         int m = lT.size()
         tb.cell(0, 0, "┌──── Statistics on " + cleanSym() + " ────┐", text_color = txCol, text_size = szS)
         int row = 1
+        if mismatchNote != ""
+            tb.cell(0, row, mismatchNote, text_color = lightOn ? #b71c1c : color.yellow, text_size = szS)
+            row += 1
         if weakNote != ""
             tb.cell(0, row, weakNote, text_color = lightOn ? #b71c1c : color.yellow, text_size = szS)
             row += 1
@@ -460,20 +483,20 @@ if barstate.islast
             int n15 = math.min(15, m)
             float acc = 100.0 * wins / m
             float acc15 = 100.0 * wins15 / n15
-            tb.cell(0, row, "──────────────────────", text_color = txCol, text_size = szS)
+            tb.cell(0, row, "────────────────────", text_color = txCol, text_size = szS)
             row += 1
             tb.cell(0, row, "💵 TOTAL (max. profit): " + str.tostring(tot, "0.##") + "%", text_color = txCol, text_size = szS)
             row += 1
             tb.cell(0, row, "1️⃣ AVERAGE profit: " + str.tostring(tot / m, "0.##") + "%", text_color = txCol, text_size = szS)
             row += 1
-            tb.cell(0, row, "👍 WINNING signals: " + str.tostring(wins) + "/" + str.tostring(m) + " (2 TP+ reached)", text_color = txCol, text_size = szS)
+            tb.cell(0, row, "👍 WINNING signals: " + str.tostring(wins) + "/" + str.tostring(m) + " (2 TP+)", text_color = txCol, text_size = szS)
             row += 1
-            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(m) + "): " + str.tostring(acc, "0") + "% (2 TP+) " + (acc >= 85 ? "📈 - very high accuracy" : acc >= 70 ? "📈 - high accuracy" : "📉 - low accuracy"), text_color = txCol, text_size = szS)
+            tb.cell(0, row, "💎 ACCURACY last " + str.tostring(m) + ": " + str.tostring(acc, "0") + "% " + (acc >= 85 ? "📈 very high" : acc >= 70 ? "📈 high" : "📉 low"), text_color = txCol, text_size = szS)
             row += 1
-            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(n15) + "): " + str.tostring(acc15, "0") + "% " + (acc15 >= 85 ? "📈 - excellent dynamics" : acc15 >= 70 ? "📈 - good dynamics" : "📉 - weak dynamics"), text_color = txCol, text_size = szS)
+            tb.cell(0, row, "💎 ACCURACY last " + str.tostring(n15) + ": " + str.tostring(acc15, "0") + "% " + (acc15 >= 85 ? "📈 excellent" : acc15 >= 70 ? "📈 good" : "📉 weak"), text_color = txCol, text_size = szS)
             row += 1
             if realOn
-                tb.cell(0, row, "Realised (stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+                tb.cell(0, row, "Realised (stop or next signal, 1×, fees " + str.tostring(feeIn) + "%):\nwins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
                      text_color = lightOn ? #b71c1c : color.yellow, text_size = szS)
                 row += 1
-        tb.cell(0, row, "└────────────────────────┘", text_color = txCol, text_size = szS)
+        tb.cell(0, row, "└──────────────────┘", text_color = txCol, text_size = szS)

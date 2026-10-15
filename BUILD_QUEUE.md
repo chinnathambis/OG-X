@@ -7,18 +7,10 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **v2.3**. Next build: v2.4 (P0 below).
+Current release: **OG X v.2.4.0 + Alerts** (16 Oct 2026). Next build: P1.
 
-## P0: bugs and fixes for v2.4 (from v2.3 testing, 15–16 Oct 2026; mocks in `research/mocks/approved/v24_*`)
-1. **Statistics table: keep the Predictum style, fix the layout (option A).** Same green centred block and emojis. Wrap the long last lines onto two lines (e.g. "Realised (stop or next signal, 1×, fees 0.08%):" / "wins … · net … · max DD …", and the two ACCURACY lines) so nothing runs over the chart or the price scale. No "Modern" style.
-2. **TP levels: no tags on the chart (option B).** Remove the "TP1 ✓" chips. Expose TP1–TP5 and SL of the current trade as plots titled "TP1" … "TP5" and "SL" (scale only, not in the legend), so TradingView's own price-scale setting "Indicators and financials → name and value labels" shows them. Nothing custom drawn on the scale.
-3. **When there is no open trade (after a stop): show only the closer "+" (option 2).** One "+" and one blue tag "Next Long at X / +x% from price" (or Short). The other side appears when price gets closer than the first. Fixes the two identical blue price tags.
-4. **"Get ready" tag: blue pill with a triangle only.** "▲ Get ready" under the candle for a Long, "▼ Get ready" above the candle for a Short, blue, same size as the other tags. No arrow, no grey text, no dashed line, no ▶ marker.
-5. **New name: "OG X v.2.4.0 + Alerts"** (chosen 16 Oct 2026). indicator() title and short title "OG X v.2.4.0 + Alerts"; legend reads e.g. "OG X v.2.4.0 + Alerts ZECUSDT.P - Binance Futures | 45 min timeframe". Versions from now on in this style (v.2.4.0, v.2.4.1 …). Update the header comment, alerts text ("OG X: LONG on …"), stats header and docs. Remove "recreation" wording from code comments and setting names. Mock: `research/mocks/approved/v24_name_format.png`.
-6. **Bug: "⚠ UNI preset" note shown on a 1000PEPEUSDT.P chart** (v2.3 screenshot). Check how the preset is picked with Auto and fix.
-7. **Legend shows only the name, not the Strategy.** Ask the user to check Chart settings → Status line → "Indicator arguments" and the indicator's Style → "Inputs in status line". If both are on and it still doesn't show, mock a fallback.
-
-**Awaiting approval (mocked 15 Oct 2026):** solid TP lines as thick as the SL line, the big "+" drawn as a cross, one tag size for all tags (only Long/Short small), SL/TP lines ending with the trade (same range as the background).
+## P0: bugs
+_None open._
 
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
@@ -36,6 +28,17 @@ Current release: **v2.3**. Next build: v2.4 (P0 below).
 - **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
 - **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
 - **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
+
+## Shipped in v.2.4.0 (16 Oct 2026) (from v2.3 testing, 15–16 Oct 2026; mocks in `research/mocks/approved/v24_*`)
+1. **Statistics table: keep the Predictum style, fix the layout (option A).** Same green centred block and emojis. Wrap the long last lines onto two lines (e.g. "Realised (stop or next signal, 1×, fees 0.08%):" / "wins … · net … · max DD …", and the two ACCURACY lines) so nothing runs over the chart or the price scale. No "Modern" style.
+2. **TP levels: no tags on the chart (option B).** Remove the "TP1 ✓" chips. Expose TP1–TP5 and SL of the current trade as plots titled "TP1" … "TP5" and "SL" (scale only, not in the legend), so TradingView's own price-scale setting "Indicators and financials → name and value labels" shows them. Nothing custom drawn on the scale.
+3. **When there is no open trade (after a stop): show only the closer "+" (option 2).** One "+" and one blue tag "Next Long at X / +x% from price" (or Short). The other side appears when price gets closer than the first. Fixes the two identical blue price tags.
+4. **"Get ready" tag: blue pill with a triangle only.** "▲ Get ready" under the candle for a Long, "▼ Get ready" above the candle for a Short, blue, same size as the other tags. No arrow, no grey text, no dashed line, no ▶ marker.
+5. **New name: "OG X v.2.4.0 + Alerts"** (chosen 16 Oct 2026). indicator() title and short title "OG X v.2.4.0 + Alerts"; legend reads e.g. "OG X v.2.4.0 + Alerts ZECUSDT.P - Binance Futures | 45 min timeframe". Versions from now on in this style (v.2.4.0, v.2.4.1 …). Update the header comment, alerts text ("OG X: LONG on …"), stats header and docs. Remove "recreation" wording from code comments and setting names. Mock: `research/mocks/approved/v24_name_format.png`.
+6. **Bug: "⚠ UNI preset" note shown on a 1000PEPEUSDT.P chart** (v2.3 screenshot). Check how the preset is picked with Auto and fix.
+7. **Legend shows only the name, not the Strategy** (no code change; user to check the two TradingView settings). Ask the user to check Chart settings → Status line → "Indicator arguments" and the indicator's Style → "Inputs in status line". If both are on and it still doesn't show, mock a fallback.
+
+**Also shipped (approved 16 Oct 2026):** solid TP lines as thick as the SL line, the big "+" drawn as a cross, one tag size for all tags (only Long/Short small), SL/TP lines ending with the trade (same range as the background).
 
 ## Shipped in v2.3 (15 Oct 2026)
 Kept as the build record. Approved mocks: `research/mocks/README.md`.
