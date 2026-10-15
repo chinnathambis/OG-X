@@ -9,8 +9,18 @@
 
 Current release: **OG X v.2.4.2 + Alerts** (16 Oct 2026). Next build: P1.
 
-## P0: bugs
-_None open._
+## P0: bugs and fixes for v.2.4.3
+1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
+   - **Red WARNING box** when the chart differs from the presets. Each check gets ✅ or ❌:
+     - timeframe 45 min or lower
+     - a supported ticker (a preset exists)
+     - exchange is BINANCE (or BYBIT); the ❌ line names the actual exchange
+     - ticker ends with ".P" (perpetual futures)
+     - plus the note "Signals still run with Custom settings; results may differ from the presets."
+   - **Blue "SUPPORTED TICKERS (presets)" list** under the box: BTCUSDT.P (v2.2 and v.5), ETH, ZEC, DOGE, QNT, 1000PEPE, XRP, AAVE, SOL, PAXG, SUI ⚠, UNI ⚠, ARB ⚠, with the footer "Binance futures · 45 min · other coins: Custom".
+   - **Correct chart but no preset** (e.g. LINKUSDT.P with Auto): no red box. A blue info line "ℹ No preset for X — Custom settings are in use (N bars · buf % · stop %)" with ✅ timeframe · ✅ exchange · ✅ ".P", and the supported list under it.
+   - Signals keep running in both cases (unlike Predictum, which blocks).
+   - New setting **"Hide the chart check"** turns both boxes off.
 
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
