@@ -40,10 +40,10 @@ Take-profits (Predictum strategies): 0.3 / 1 / 2 / 3 / 10 %. Short TPs = entry /
 - **Alerts:** entry with the full TP/SL plan, each TP reached, stop-loss hit, get ready, plus Long / Short alertconditions.
 
 ## Ideas and build list
-Status: **Queued** = agreed, waiting to be built. **Idea** = discussed, not decided.
+Status: **Queued** = agreed, waiting to be built. **Idea** = discussed, not decided. **Dropped** = decided against.
 1. **Queued — show the next-signal line on the current trade.** Under "Show SL/TP of the current position", also draw the next opposite signal as a dashed trailing line, so it's visible which of the fixed stop and the next signal is closer (as in `research/stop_mock.png`). Label whichever is active "effective stop".
 2. **Queued — strategy type "SL" / "DCA + SL"** (Predictum PRO). Enter with ¼, add ¼ at −7 / −15 / −25 %, TPs from the average price, final stop 8 % beyond the last level, held until the opposite signal or the stop. Show averaging buys used per trade and the worst-case loss (~22 % of capital). Tooltip: low leverage only. Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
-3. **Idea — move the stop to entry after +3 %** (switch). Helped slower settings in the exit study. It would have turned the ETH 13 Mar 2026 −8 % trade into ~0 %.
+3. **Dropped (15 Oct 2026) — move the stop to entry after +3 %.** Not pursued: with Predictum's tight take-profits (0.3 / 1 / 2 / 3 %), +3 % is already TP4, so a breakeven stop would mostly sit inside the TP ladder and cut trades short.
 4. **Idea — one alert for all coins** (hub, Telegram-ready), like `og_shot_hub.pine`.
 5. **Idea — re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
 6. **Idea — "Experimental" group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.

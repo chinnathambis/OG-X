@@ -14,7 +14,10 @@ Items agreed or discussed but not built yet. Newest decisions on top. When an it
    - Warn in the tooltip: low leverage only (1–2×). At 10× a full DCA loss wipes out the account.
 
 ## Discussed, not decided
-- **Move the stop to entry after +3 %** (optional switch). Helped the slower presets in the exit study; on the ETH chart it would have turned the 13 Mar 2026 −8 % trade into ~0 %.
+
 - **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
 - **Re-check on full history** (`tools/fetch_max_data.py`, 24 coins, from 2019) before trading real money.
 - **"Experimental" preset group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %, which lost before Jul 2026), clearly marked as not validated.
+
+## Dropped
+- **Move the stop to entry after +3 %** (15 Oct 2026): Predictum's take-profits are tight (0.3 / 1 / 2 / 3 %), so +3 % is already TP4. A breakeven stop there would cut trades inside the TP ladder.
