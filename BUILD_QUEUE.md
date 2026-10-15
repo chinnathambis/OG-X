@@ -10,7 +10,11 @@
 Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before this way of working was agreed).
 
 ## P0: bugs
-1. **Header tag overlaps TradingView's symbol line** (reported 15 Oct 2026, XPLUSDT.P 30m). The tag "OG Breakout v2.2 XPLUSDT.P - BINANCE Futures | 45 min timeframe | Custom" sits in the top-left corner, under TradingView's own symbol/OHLC line, so the two texts print over each other. Fix: move the tag to the bottom-left corner, and add a "Show header tag" switch (Helper settings, default on). Keep it on one short line.
+1. **Header tag overlaps TradingView's symbol line → do it the Predictum way** (reported 15 Oct 2026; Predictum screenshot: "Predictūm v.2.3.7 BTCUSDT.P - Binance Futures | 45 min timeframe" shown as the indicator's own line in TradingView's legend, directly under the symbol line, inside the normal legend box).
+   - Remove the top-left header table (it prints over TradingView's symbol line).
+   - Use TradingView's legend (status line) instead. Set the indicator short title to "OG Breakout v2.x". Show only the Strategy input in the status line (`display = display.status_line`) and hide every other input (`display = display.none`), so the legend reads like "OG Breakout v2.3 BTCUSDT.P - Binance Futures | 45 min timeframe".
+   - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P1 #3). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
+   - No extra text on the chart.
 
 ## P1: agreed features
 1. **Next-signal line on the current trade.** Under "Show SL/TP of the current position", draw the next opposite signal as a dashed trailing line next to the fixed stop, and label whichever is closer "effective stop". Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/stop_mock.png`.
