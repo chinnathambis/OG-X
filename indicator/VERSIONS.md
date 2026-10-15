@@ -26,4 +26,6 @@ The current build is always `indicator/og_breakout.pine`. Every released version
 
 | v.2.4.1 | 16 Oct 2026 | `archive/og_x_v2.4.1.pine` | Compile fixes from TradingView: the preset/coin check used `str.split(...)[0]` (an array, rejected in a ternary) → now `str.substring` up to ".P"; the short title was too long (max 10 characters) → removed, so the legend shows the full title "OG X v.2.4.1 + Alerts". |
 
+| v.2.4.2 | 16 Oct 2026 | `archive/og_x_v2.4.2.pine` | "+" is a 40 pt text "+" (the drawn cross was too tall); "Get ready" pill in the side colour (green Long, red Short) at the Long/Short label size; only one "Get ready" per side per trade (re-armed by a new signal or a stop), instead of every time price wobbled near the level. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

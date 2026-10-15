@@ -1,9 +1,9 @@
 //@version=6
-// OG X v.2.4.1 + Alerts (16 Oct 2026)
+// OG X v.2.4.2 + Alerts (16 Oct 2026)
 // Engine (fixed on 45m): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
 // Strategy presets per coin, a "+" helper for the next entry, and a statistics block. Older versions in archive/.
-indicator("OG X v.2.4.1 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+indicator("OG X v.2.4.2 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────── Strategy menu (shown in TradingView's legend)
 const string O_AUTO = "Auto"
@@ -312,19 +312,19 @@ if not na(pkLbl) and dir != 0 and not na(ent)
     pkLbl.set_xy(pkBar, pkPx)
     pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)))
 
-// ─────────────────────────────── 4) Helper: 'Get ready' pill (blue, triangle)
+// ─────────────────────────────── 4) Helper: 'Get ready' pill (green Long / red Short, same size as the Long/Short labels)
 if helperOn and tfOK and not newSig
     if pos != 1 and not na(upL) and armL and high >= upL * (1 - READY_PCT / 100)
-        label.new(bar_index, low, "▲ Get ready", style = label.style_label_up, color = colHl, textcolor = color.white, size = szT)
+        label.new(bar_index, low, "▲ Get ready", style = label.style_label_up, color = colL, textcolor = color.white, size = szS)
         alert("#" + cleanSym() + " | Get ready to Long · entry " + fmtPx(upL), alert.freq_once_per_bar)
         armL := false
     if pos != -1 and not na(dnL) and armS and low <= dnL * (1 + READY_PCT / 100)
-        label.new(bar_index, high, "▼ Get ready", style = label.style_label_down, color = colHl, textcolor = color.white, size = szT)
+        label.new(bar_index, high, "▼ Get ready", style = label.style_label_down, color = colS, textcolor = color.white, size = szS)
         alert("#" + cleanSym() + " | Get ready to Short · entry " + fmtPx(dnL), alert.freq_once_per_bar)
         armS := false
-if not na(upL) and close < upL * (1 - 2 * READY_PCT / 100)
+// one "Get ready" per side per trade: re-armed only by a new signal or a stop (not every time price wobbles near the level)
+if slNow
     armL := true
-if not na(dnL) and close > dnL * (1 + 2 * READY_PCT / 100)
     armS := true
 
 // which next entries are shown: during a trade only the opposite one; with no open trade only the closer one
@@ -332,20 +332,16 @@ bool flat   = pos == 0
 bool nearL  = not na(upL) and not na(dnL) ? (upL / close - 1) <= (1 - dnL / close) : not na(upL)
 bool showL  = helperOn and tfOK and not na(upL) and (pos == -1 or (flat and nearL))
 bool showS  = helperOn and tfOK and not na(dnL) and (pos == 1 or (flat and not nearL))
-float atrV  = ta.atr(14)
 
 // "+" at the next entry, blue tag, next-position SL/TP (all redrawn on the last bar only)
 var array<label> nxtLbls  = array.new<label>()
 var array<line>  nxtLines = array.new<line>()
 int PLUS_X = 6   // bars to the right of the live candle (centre of the "+")
-int PLUS_W = 4   // half width of the "+" in bars
+int PLUS_W = 2   // room for the "+" before the tag
 // d = side of the next signal, e = its price
 drawNext(int d, float e) =>
     color sc = d == 1 ? colL : colS
-    // big "+" drawn from two thick lines so it is visible at any zoom
-    float hh = nz(atrV, e * 0.003) * 1.6
-    nxtLines.push(line.new(bar_index + PLUS_X - PLUS_W, e, bar_index + PLUS_X + PLUS_W, e, color = sc, width = 4))
-    nxtLines.push(line.new(bar_index + PLUS_X, e - hh, bar_index + PLUS_X, e + hh, color = sc, width = 4))
+    nxtLbls.push(label.new(bar_index + PLUS_X, e, "+", style = label.style_none, textcolor = sc, size = 40))   // "+" at 40 pt
     string nm = d == 1 ? "Long" : "Short"
     string txt = ""
     if pos == -d and not na(ent)

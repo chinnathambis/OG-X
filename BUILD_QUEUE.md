@@ -7,7 +7,7 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **OG X v.2.4.1 + Alerts** (16 Oct 2026). Next build: P1.
+Current release: **OG X v.2.4.2 + Alerts** (16 Oct 2026). Next build: P1.
 
 ## P0: bugs
 _None open._
