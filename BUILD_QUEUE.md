@@ -7,9 +7,31 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before this way of working was agreed).
+Current release: **v2.3** (15 Oct 2026: all P0 items shipped, see "Shipped in v2.3" below). Next build: P1.
 
 ## P0: bugs
+_None open._
+
+## P1: agreed features
+1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
+   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
+   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
+   - Tooltip: low leverage only (1–2×).
+   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
+
+## P2: ideas
+- **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
+  - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
+  - **Data point 2 (dark screenshot, 15 Oct 2026):** API3USDT, Bybit, 45m, Long on Sat 16 Aug 2025 11:15 (chart time zone unknown), peak profit +1193.06 %. The indicator's legend reads "Crackōs v.1.0.1 + Alerts", which is probably the TradingView name of Predictum X.
+- **Predictum X look (option)** (from the AVL screenshot; API3 dark screenshot adds: blue "Prepare to Long" box on the candle before entry, white dashed vertical line at the entry candle, white dashed entry-price line running to the right edge, "Long ↗" label drawn in red): "Long ↗" / "Short ↘" boxes, monospace green "Peak profit" boxes, teal/pink background, TP1–4 lines close together with TP5 and TP6 further out, red SL line.
+- **Predictum X–style alert message** (from the same screenshot): "#COIN | Open Long · Current price · Settings: EXCHANGE. Timeframe: 45 min · Strategy score · TP1–6 with Probability % · DCA 1–3 · ID: #Long_COIN_dd_MM_yyyy_HH_mm". Probability per TP can come from our own statistics (the TP hit rate on this coin). "PNL %" and "Strategy score" formulas are unknown (PNL doesn't scale with the TP distance), so leave them out until the X research explains them.
+- **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
+- **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
+- **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
+
+## Shipped in v2.3 (15 Oct 2026)
+Kept as the build record. Approved mocks: `research/mocks/README.md`.
+
 1. **Header tag overlaps TradingView's symbol line → do it the Predictum way** (reported 15 Oct 2026; Predictum screenshot: "Predictūm v.2.3.7 BTCUSDT.P - Binance Futures | 45 min timeframe" shown as the indicator's own line in TradingView's legend, directly under the symbol line, inside the normal legend box).
    - Remove the top-left header table (it prints over TradingView's symbol line).
    - Use TradingView's legend (status line) instead. Set the indicator short title to "OG Breakout v2.x". Show only the Strategy input in the status line (`display = display.status_line`) and hide every other input (`display = display.none`), so the legend reads like "OG Breakout v2.3 BTCUSDT.P - Binance Futures | 45 min timeframe".
@@ -67,23 +89,6 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
      - UNIUSDT.P - Binance Futures | 45 min timeframe
      - ARBUSDT.P - Binance Futures | 45 min timeframe
    - The ⚠ (SUI, UNI, ARB) is kept out of the name so the legend stays clean. It appears in the input tooltip and as a small note in the stats table.
-
-## P1: agreed features
-1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
-   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
-   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
-   - Tooltip: low leverage only (1–2×).
-   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
-
-## P2: ideas
-- **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
-  - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
-  - **Data point 2 (dark screenshot, 15 Oct 2026):** API3USDT, Bybit, 45m, Long on Sat 16 Aug 2025 11:15 (chart time zone unknown), peak profit +1193.06 %. The indicator's legend reads "Crackōs v.1.0.1 + Alerts", which is probably the TradingView name of Predictum X.
-- **Predictum X look (option)** (from the AVL screenshot; API3 dark screenshot adds: blue "Prepare to Long" box on the candle before entry, white dashed vertical line at the entry candle, white dashed entry-price line running to the right edge, "Long ↗" label drawn in red): "Long ↗" / "Short ↘" boxes, monospace green "Peak profit" boxes, teal/pink background, TP1–4 lines close together with TP5 and TP6 further out, red SL line.
-- **Predictum X–style alert message** (from the same screenshot): "#COIN | Open Long · Current price · Settings: EXCHANGE. Timeframe: 45 min · Strategy score · TP1–6 with Probability % · DCA 1–3 · ID: #Long_COIN_dd_MM_yyyy_HH_mm". Probability per TP can come from our own statistics (the TP hit rate on this coin). "PNL %" and "Strategy score" formulas are unknown (PNL doesn't scale with the TP distance), so leave them out until the X research explains them.
-- **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
-- **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
-- **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
 
 ## Dropped
 - **Next-signal trailing line / "◀ EXIT" stub (old P1 #1, 15 Oct 2026):** replaced by the opposite "+" and its blue bubble in P0 #2.
