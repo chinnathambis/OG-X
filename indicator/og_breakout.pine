@@ -1,9 +1,9 @@
 //@version=6
-// OG X v.2.4.0 + Alerts (16 Oct 2026)
+// OG X v.2.4.1 + Alerts (16 Oct 2026)
 // Engine (fixed on 45m): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
 // Strategy presets per coin, a "+" helper for the next entry, and a statistics block. Older versions in archive/.
-indicator("OG X v.2.4.0 + Alerts", "OG X v.2.4.0 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+indicator("OG X v.2.4.1 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────── Strategy menu (shown in TradingView's legend)
 const string O_AUTO = "Auto"
@@ -105,7 +105,7 @@ string kind = switch stratEff
     O_SUI  => "eth"
     => "custom"
 // a preset picked by hand for another coin: warn (e.g. the UNI preset on a 1000PEPE chart)
-string presetCoin = kind == "custom" ? "" : str.split(stratEff, ".P")[0]
+string presetCoin = kind == "custom" ? "" : str.substring(stratEff, 0, str.pos(stratEff, ".P"))
 string mismatchNote = presetCoin != "" and presetCoin != coinU ? "⚠ Preset is for " + presetCoin + ".P, chart is " + coinU + ".P" : ""
 string weakNote = stratEff == O_SUI ? "⚠ SUI preset: weak in 2026 (+1 %)" : stratEff == O_UNI ? "⚠ UNI preset: deep drawdown (66 %)" : stratEff == O_ARB ? "⚠ ARB preset: flat in 2024–25 (+1 %)" : ""
 int N = switch kind
