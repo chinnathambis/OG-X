@@ -1,15 +1,16 @@
 //@version=6
-// OG Breakout v1.5 (presets scale to any timeframe) — v1.0 — original clean-room build (15 Oct 2026).
+// OG Breakout v2.0 — Original Predictum recreation (15 Oct 2026). Built from v1.0; v1.1–v1.5 (extra presets,
+// timeframe scaling) are kept in archive/. Engine fixed on 45m like Predictum; Predictum-style statistics block.
 // Engine: Donchian channel breakout on an engine timeframe (default 45m), intrabar touch entry,
 // one position at a time, fixed % stop, fixed % take-profit ladder, same-side re-entry after a stop.
 // Fitted on Binance USDT-M futures: reproduces a 50-signal BTC history exactly (see predictum/RESEARCH.md).
-indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500, max_bars_back = 5000)
+indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500)
 
 // ─────────────────────────────── Inputs
 G_MAIN = "⚙ Engine"
-presetIn = input.string("Universal · 500 · 0.6% · 3%", "Preset", options = ["Universal · 500 · 0.6% · 3%", "Fast · 60 · 0% · 10%", "Active · 240 · 0% · 4%", "Medium · 340 · 0% · 3%", "Swing · 450 · 1% · 3%", "Swing · 550 · 0% · 4%", "Slow · 600 · 0.6% · 3%", "Slow · 800 · 1% · 3%", "Very slow · 850 · 1.5% · 4%", "BTC tuned · 700 · 1% · 3%", "ETH tuned · 700 · 0.6% · 3%", "DOGE tuned · 640 · 0% · 4%", "SUI tuned · 700 · 1% · 4%", "Predictum BTC · 180 · 0.6% · 6%", "Predictum BTC · 210 · 0% · 6%", "Predictum ETH · 450 · 0% · 8%", "Custom"], group = G_MAIN,
-     tooltip = "Name · channel length (engine bars) · entry buffer · stop. Universal-family presets were tuned on 12 Binance futures coins (train Oct 2024 – Dec 2025, test Jan – Oct 2026); slower = fewer, longer trades. 'Coin tuned' presets fit one coin only. Predictum presets are the original settings (fitted on 2020–2023). The stats header shows whether the chart coin was profitable with the preset in both periods. Custom uses the three settings below.")
-engTfIn  = input.timeframe("", "Engine timeframe", group = G_MAIN, tooltip = "Empty = same as the chart. Presets are set in time (days) and scale to any timeframe, so 15m, 45m, 1h and 4h give nearly the same signals. Higher timeframes load more history, so the statistics cover more trades (4h ≈ 2+ years). The chart timeframe must be equal to or lower than the engine timeframe.")
+presetIn = input.string("Auto (by chart coin)", "Strategy", options = ["Auto (by chart coin)", "Predictum BTC · 180 · 0.6% · 6%", "Predictum BTC · 210 · 0% · 6%", "Predictum ETH · 450 · 0% · 8%", "Custom"], group = G_MAIN,
+     tooltip = "The original Predictum settings, recovered from its history. Auto picks BTC 180 on BTC charts and ETH 450 on ETH charts; any other coin uses Custom. BTC 180 = v2.2.x (45 min), BTC 210 = v.5 (matches its 50-signal history exactly), ETH 450 = ETH statistics.")
+engTfIn  = input.timeframe("45", "Engine timeframe", group = G_MAIN, tooltip = "The channel is built on this timeframe. Use a chart timeframe equal to or lower than it (45m, 15m, 5m…).")
 nU       = input.int(180, "Custom · channel length", minval = 10, maxval = 3000, group = G_MAIN)
 bufU     = input.float(0.6, "Custom · entry buffer %", minval = 0.0, step = 0.1, group = G_MAIN, tooltip = "Long entry = channel high minus this %, short entry = channel low plus this %.")
 slU      = input.float(6.0, "Custom · stop-loss %", minval = 0.1, step = 0.5, group = G_MAIN)
@@ -38,84 +39,30 @@ colSL    = input.color(#ff1744, "SL", inline = "c", group = G_VIS)
 
 G_PNL = "📋 Statistics"
 statsOn  = input.bool(true, "Show the statistics block", group = G_PNL)
-statsN   = input.int(15, "Recent signals listed", minval = 3, maxval = 40, group = G_PNL)
+statsN   = input.int(50, "The number of recent signals in statistics", minval = 5, maxval = 100, group = G_PNL)
+realOn   = input.bool(false, "Also show realised results (exit at stop or next signal, 1×)", group = G_PNL, tooltip = "Not part of Predictum. Shows what holding each trade to its stop or the next signal would have returned.")
+feeIn    = input.float(0.08, "Fees per trade % (realised row)", minval = 0, step = 0.01, group = G_PNL)
 statsPos = input.string("Top R", "Position", options = ["Top R", "Bottom R", "Top L", "Bottom L"], group = G_PNL)
 fromIn   = input.time(timestamp("2020-01-01T00:00:00"), "Count trades from", group = G_PNL)
-feeIn    = input.float(0.08, "Fees per trade % (round trip)", minval = 0, step = 0.01, group = G_PNL, tooltip = "Deducted from every realised result. 0.08% ≈ Binance taker in + out.")
 
 // ─────────────────────────────── Preset resolution
-int N = switch presetIn
-    "Universal · 500 · 0.6% · 3%" => 500
-    "Fast · 60 · 0% · 10%" => 60
-    "Active · 240 · 0% · 4%" => 240
-    "Medium · 340 · 0% · 3%" => 340
-    "Swing · 450 · 1% · 3%" => 450
-    "Swing · 550 · 0% · 4%" => 550
-    "Slow · 600 · 0.6% · 3%" => 600
-    "Slow · 800 · 1% · 3%" => 800
-    "Very slow · 850 · 1.5% · 4%" => 850
-    "BTC tuned · 700 · 1% · 3%" => 700
-    "ETH tuned · 700 · 0.6% · 3%" => 700
-    "DOGE tuned · 640 · 0% · 4%" => 640
-    "SUI tuned · 700 · 1% · 4%" => 700
+string coinU = str.replace_all(str.replace_all(syminfo.ticker, ".P", ""), "PERP", "")
+string presetEff = presetIn != "Auto (by chart coin)" ? presetIn : coinU == "BTCUSDT" ? "Predictum BTC · 180 · 0.6% · 6%" : coinU == "ETHUSDT" ? "Predictum ETH · 450 · 0% · 8%" : "Custom"
+int N = switch presetEff
     "Predictum BTC · 180 · 0.6% · 6%" => 180
-    "Predictum BTC · 210 · 0% · 6%" => 210
-    "Predictum ETH · 450 · 0% · 8%" => 450
+    "Predictum BTC · 210 · 0% · 6%"   => 210
+    "Predictum ETH · 450 · 0% · 8%"   => 450
     => nU
-float BUF = switch presetIn
-    "Universal · 500 · 0.6% · 3%" => 0.006
-    "Fast · 60 · 0% · 10%" => 0.0
-    "Active · 240 · 0% · 4%" => 0.0
-    "Medium · 340 · 0% · 3%" => 0.0
-    "Swing · 450 · 1% · 3%" => 0.01
-    "Swing · 550 · 0% · 4%" => 0.0
-    "Slow · 600 · 0.6% · 3%" => 0.006
-    "Slow · 800 · 1% · 3%" => 0.01
-    "Very slow · 850 · 1.5% · 4%" => 0.015
-    "BTC tuned · 700 · 1% · 3%" => 0.01
-    "ETH tuned · 700 · 0.6% · 3%" => 0.006
-    "DOGE tuned · 640 · 0% · 4%" => 0.0
-    "SUI tuned · 700 · 1% · 4%" => 0.01
+float BUF = switch presetEff
     "Predictum BTC · 180 · 0.6% · 6%" => 0.006
-    "Predictum BTC · 210 · 0% · 6%" => 0.0
-    "Predictum ETH · 450 · 0% · 8%" => 0.0
+    "Predictum BTC · 210 · 0% · 6%"   => 0.0
+    "Predictum ETH · 450 · 0% · 8%"   => 0.0
     => bufU / 100
-float SL = switch presetIn
-    "Universal · 500 · 0.6% · 3%" => 0.03
-    "Fast · 60 · 0% · 10%" => 0.1
-    "Active · 240 · 0% · 4%" => 0.04
-    "Medium · 340 · 0% · 3%" => 0.03
-    "Swing · 450 · 1% · 3%" => 0.03
-    "Swing · 550 · 0% · 4%" => 0.04
-    "Slow · 600 · 0.6% · 3%" => 0.03
-    "Slow · 800 · 1% · 3%" => 0.03
-    "Very slow · 850 · 1.5% · 4%" => 0.04
-    "BTC tuned · 700 · 1% · 3%" => 0.03
-    "ETH tuned · 700 · 0.6% · 3%" => 0.03
-    "DOGE tuned · 640 · 0% · 4%" => 0.04
-    "SUI tuned · 700 · 1% · 4%" => 0.04
+float SL = switch presetEff
     "Predictum BTC · 180 · 0.6% · 6%" => 0.06
-    "Predictum BTC · 210 · 0% · 6%" => 0.06
-    "Predictum ETH · 450 · 0% · 8%" => 0.08
+    "Predictum BTC · 210 · 0% · 6%"   => 0.06
+    "Predictum ETH · 450 · 0% · 8%"   => 0.08
     => slU / 100
-string VALID = switch presetIn
-    "Universal · 500 · 0.6% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
-    "Fast · 60 · 0% · 10%" => "ADA,DOGE,ETH,SUI,TAO,XRP"
-    "Active · 240 · 0% · 4%" => "ETH,HYPE,SOL,XRP"
-    "Medium · 340 · 0% · 3%" => "AVAX,DOGE,ETH,XRP"
-    "Swing · 450 · 1% · 3%" => "AVAX,DOGE,ETH,SUI,XRP"
-    "Swing · 550 · 0% · 4%" => "AVAX,DOGE,ETH,SUI,XRP"
-    "Slow · 600 · 0.6% · 3%" => "DOGE,ETH,SUI,XRP"
-    "Slow · 800 · 1% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
-    "Very slow · 850 · 1.5% · 4%" => "AVAX,BTC,DOGE,ETH,LINK,SOL,SUI,XRP"
-    "BTC tuned · 700 · 1% · 3%" => "BTC"
-    "ETH tuned · 700 · 0.6% · 3%" => "ETH"
-    "DOGE tuned · 640 · 0% · 4%" => "DOGE"
-    "SUI tuned · 700 · 1% · 4%" => "SUI"
-    "Predictum BTC · 180 · 0.6% · 6%" => ""
-    "Predictum BTC · 210 · 0% · 6%" => ""
-    "Predictum ETH · 450 · 0% · 8%" => ""
-    => ""
 
 string ladderStr = switch ladderIn
     "Classic 0.3/1/2/3/10" => "0.3,1,2,3,10"
@@ -138,13 +85,7 @@ int nTP = TPS.size()
 // ─────────────────────────────── Channel (no repaint: only closed engine bars are used)
 string engTf = engTfIn == "" ? timeframe.period : engTfIn
 bool   tfOK  = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(engTf)
-// presets are defined in 45m bars; scale them to the engine timeframe so they cover the same number of days
-int    engSec = timeframe.in_seconds(engTf)
-int    NRaw   = presetIn == "Custom" ? N : math.max(10, int(math.round(N * 2700.0 / engSec)))
-bool   nCap   = NRaw > 4900
-int    NE     = math.min(NRaw, 4900)
-float  NDays  = NE * engSec / 86400.0
-[hhE, llE] = request.security(syminfo.tickerid, engTf, [ta.highest(high, NE)[1], ta.lowest(low, NE)[1]], lookahead = barmerge.lookahead_on)
+[hhE, llE] = request.security(syminfo.tickerid, engTf, [ta.highest(high, N)[1], ta.lowest(low, N)[1]], lookahead = barmerge.lookahead_on)
 float upL = hhE * (1 - BUF)
 float dnL = llE * (1 + BUF)
 
@@ -178,8 +119,6 @@ shownPct(float pk, bool sl, int tp) =>
 fmtPct(float v) => (v >= 0 ? "+" : "") + str.tostring(v, "0.00") + "%"
 fmtPx(float v) => str.tostring(v, format.mintick)
 cleanSym() => str.replace_all(syminfo.ticker, ".P", "")
-coinBase() => str.replace_all(cleanSym(), "USDT", "")
-validNote() => VALID == "" ? "" : array.includes(str.split(VALID, ","), coinBase()) ? " ✓ profitable here in train + test" : " ⚠ not validated on this coin"
 tpPrice(int d, float e, float p) => d == 1 ? e * (1 + p) : e / (1 + p)
 
 // ─────────────────────────────── 1) Stop-loss on the open position (checked before a new signal)
@@ -202,7 +141,7 @@ if newSig
     // close the previous trade (its peak excludes this bar)
     if dir != 0 and not na(ent)
         bool sl2 = slHit or slNow
-        float r = (sl2 ? -SL : (px / ent - 1) * dir) - feeIn / 100
+        float r = sl2 ? -SL : (px / ent - 1) * dir
         if entT >= fromIn
             stT.push(entT)
             stD.push(dir)
@@ -298,71 +237,82 @@ plot(nextOn and pos != -1 ? dnL : na, "Next short entry", color.new(colS, 0), 1,
 alertcondition(longSig, "Long", "OG Breakout: LONG on {{ticker}} at {{close}}")
 alertcondition(shortSig, "Short", "OG Breakout: SHORT on {{ticker}} at {{close}}")
 
-// ─────────────────────────────── 5) Statistics block
+// ─────────────────────────────── 5) Statistics block (Predictum style)
+emo(float v) => v < 0 ? "🚫" : v < 10 ? "🤔" : v < 20 ? "😚" : v < 30 ? "😎" : v < 50 ? "🙌" : v < 200 ? "🔥" : "🎰"
 var table tb = table.new(statsPos == "Top R" ? position.top_right : statsPos == "Bottom R" ? position.bottom_right : statsPos == "Top L" ? position.top_left : position.bottom_left,
-     4, 60, bgcolor = color.new(#0d3b1e, 5), border_width = 0)
+     1, 115, bgcolor = color.new(#0d4a1e, 5), border_width = 0)
 if barstate.islast
-    tb.clear(0, 0, 3, 59)
+    tb.clear(0, 0, 0, 114)
     color tx = color.white
     if not tfOK
-        tb.cell(0, 0, "⚠ Chart timeframe must be ≤ engine timeframe (" + engTf + ")", text_color = color.yellow, text_size = size.small)
-        tb.merge_cells(0, 0, 3, 0)
+        tb.cell(0, 0, "⚠ Use a chart timeframe of " + engTf + " or lower", text_color = color.yellow, text_size = size.small)
     else if statsOn
-        int n = stT.size()
-        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + timeframe.period + (engTf != timeframe.period ? " (engine " + engTf + ")" : "") + " · " + str.tostring(NE) + " bars ≈ " + str.tostring(NDays, "0.0") + " days" + (nCap ? " ⚠ capped, use a higher timeframe" : "") + validNote(), text_color = tx, text_size = size.small)
-        tb.merge_cells(0, 0, 3, 0)
-        int row = 1
-        // open trade first
+        // newest first: open trade, then closed trades
+        array<int>   lT = array.new<int>()
+        array<int>   lD = array.new<int>()
+        array<float> lP = array.new<float>()   // shown peak %, leveraged
+        array<float> lW = array.new<float>()   // raw peak move
+        array<float> lR = array.new<float>()   // realised, 1x, after fees
         if dir != 0 and not na(ent)
-            float rOpen = (slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100
-            tb.cell(0, row, str.format_time(entT, "dd.MM.yy HH:mm", "UTC"), text_color = tx, text_size = size.small)
-            tb.cell(1, row, dir == 1 ? "Long" : "Short", text_color = dir == 1 ? colL : colS, text_size = size.small)
-            tb.cell(2, row, fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)), text_color = tx, text_size = size.small)
-            tb.cell(3, row, (slHit ? "stopped " : "open ") + fmtPct(rOpen * 100), text_color = color.silver, text_size = size.small)
-            row += 1
-        int shown = math.min(statsN, n)
-        for k = 0 to math.max(shown - 1, 0)
+            lT.push(entT)
+            lD.push(dir)
+            lP.push(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit))
+            lW.push(peakPct(dir, ent, pkPx))
+            lR.push((slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100)
+        int n = stT.size()
+        for k = 0 to math.max(n - 1, 0)
             int i = n - 1 - k
-            if shown == 0 or i < 0
+            if n == 0 or lT.size() >= statsN
                 break
-            float sp = shownPct(stPk.get(i), stSl.get(i), stTp.get(i))
-            tb.cell(0, row, str.format_time(stT.get(i), "dd.MM.yy HH:mm", "UTC"), text_color = tx, text_size = size.small)
-            tb.cell(1, row, stD.get(i) == 1 ? "Long" : "Short", text_color = stD.get(i) == 1 ? colL : colS, text_size = size.small)
-            tb.cell(2, row, fmtPct(sp), text_color = sp < 0 ? colSL : tx, text_size = size.small)
-            tb.cell(3, row, "real " + fmtPct(stR.get(i) * 100), text_color = stR.get(i) >= 0 ? colTP : colSL, text_size = size.small)
-            row += 1
-        if n > 0 and nTP > 0
-            int wins = 0
-            int realW = 0
-            float sumPk = 0.0
-            float eq = 1.0
-            float peakEq = 1.0
-            float maxDD = 0.0
-            array<int> tpCnt = array.new<int>(nTP, 0)
-            for i = 0 to n - 1
-                if stTp.get(i) >= winTpIn
-                    wins += 1
-                if stR.get(i) > 0
-                    realW += 1
-                sumPk += stPk.get(i)
-                eq *= 1 + stR.get(i)
+            lT.push(stT.get(i))
+            lD.push(stD.get(i))
+            lP.push(shownPct(stPk.get(i), stSl.get(i), stTp.get(i)))
+            lW.push(stPk.get(i))
+            lR.push(stR.get(i) - feeIn / 100)
+        int m = lT.size()
+        tb.cell(0, 0, "┌──── Statistics on " + cleanSym() + " ────┐", text_color = tx, text_size = size.small)
+        int row = 1
+        float tot = 0.0
+        int wins = 0
+        int wins15 = 0
+        float tp2 = nTP >= 2 ? TPS.get(1) : nTP == 1 ? TPS.get(0) : 0.01
+        float eq = 1.0
+        float peakEq = 1.0
+        float maxDD = 0.0
+        int realW = 0
+        if m > 0
+            for k = 0 to m - 1
+                float v = lP.get(k)
+                tb.cell(0, row, str.format_time(lT.get(k), "d.M.yy H:mm", "UTC") + " | " + (lD.get(k) == 1 ? "Long" : "Short") + " | " + str.tostring(v, "0.##") + "% " + emo(v),
+                     text_color = tx, text_size = size.small)
+                row += 1
+                tot += v
+                bool w = lW.get(k) >= tp2
+                wins += w ? 1 : 0
+                wins15 += (w and k < 15) ? 1 : 0
+            // realised, oldest first
+            for k = m - 1 to 0
+                eq *= 1 + lR.get(k)
                 peakEq := math.max(peakEq, eq)
                 maxDD := math.max(maxDD, 1 - eq / peakEq)
-                for t = 0 to nTP - 1
-                    if stTp.get(i) > t
-                        tpCnt.set(t, tpCnt.get(t) + 1)
-            string tpRow = ""
-            for t = 0 to nTP - 1
-                tpRow += (t == 0 ? "" : "  ") + "TP" + str.tostring(t + 1) + " " + str.tostring(100.0 * tpCnt.get(t) / n, "0") + "%"
-            tb.cell(0, row, "Signals: " + str.tostring(n) + "  ·  avg peak " + fmtPct(sumPk / n * levIn * 100) + " (×" + str.tostring(levIn) + ")", text_color = tx, text_size = size.small)
-            tb.merge_cells(0, row, 3, row)
+                realW += lR.get(k) > 0 ? 1 : 0
+            int n15 = math.min(15, m)
+            float acc = 100.0 * wins / m
+            float acc15 = 100.0 * wins15 / n15
+            tb.cell(0, row, "──────────────────────", text_color = tx, text_size = size.small)
             row += 1
-            tb.cell(0, row, "Accuracy (TP" + str.tostring(winTpIn) + " before stop): " + str.tostring(100.0 * wins / n, "0") + "%  (" + str.tostring(wins) + "/" + str.tostring(n) + ")", text_color = tx, text_size = size.small)
-            tb.merge_cells(0, row, 3, row)
+            tb.cell(0, row, "💵 TOTAL (max. profit): " + str.tostring(tot, "0.##") + "%", text_color = tx, text_size = size.small)
             row += 1
-            tb.cell(0, row, tpRow, text_color = tx, text_size = size.small)
-            tb.merge_cells(0, row, 3, row)
+            tb.cell(0, row, "1️⃣ AVERAGE profit: " + str.tostring(tot / m, "0.##") + "%", text_color = tx, text_size = size.small)
             row += 1
-            tb.cell(0, row, "Realised (exit at stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / n, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
-                 text_color = color.yellow, text_size = size.small)
-            tb.merge_cells(0, row, 3, row)
+            tb.cell(0, row, "👍 WINNING signals: " + str.tostring(wins) + "/" + str.tostring(m) + " (2 TP+ reached)", text_color = tx, text_size = size.small)
+            row += 1
+            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(m) + "): " + str.tostring(acc, "0") + "% (2 TP+) " + (acc >= 85 ? "📈 - very high accuracy" : acc >= 70 ? "📈 - high accuracy" : "📉 - low accuracy"), text_color = tx, text_size = size.small)
+            row += 1
+            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(n15) + "): " + str.tostring(acc15, "0") + "% " + (acc15 >= 85 ? "📈 - excellent dynamics" : acc15 >= 70 ? "📈 - good dynamics" : "📉 - weak dynamics"), text_color = tx, text_size = size.small)
+            row += 1
+            if realOn
+                tb.cell(0, row, "Realised (stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+                     text_color = color.yellow, text_size = size.small)
+                row += 1
+        tb.cell(0, row, "└────────────────────────┘", text_color = tx, text_size = size.small)

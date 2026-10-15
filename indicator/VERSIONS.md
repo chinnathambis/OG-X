@@ -14,4 +14,6 @@ The current build is always `indicator/og_breakout.pine`. Every released version
 
 | v1.5 | 15 Oct 2026 | `archive/og_breakout_v1.5.pine` | Engine timeframe defaults to the chart's. Preset channel lengths are converted to time and scaled to the engine timeframe (Universal = 500 × 45m ≈ 15.6 days = 125 × 3h …), so presets work on 15m, 45m, 1h, 2h or 4h charts. The stats header shows bars ≈ days. max_bars_back 5000, channel capped at 4,900 bars with a warning. On a 45m chart the signals are identical to v1.4. |
 
+| **v2.0** | 15 Oct 2026 | `archive/og_breakout_v2.0.pine` | **Back to the original Predictum.** Rebuilt from v1.0. Only the three recovered Predictum strategies (BTC 180, BTC 210, ETH 450) plus Custom, with "Auto (by chart coin)" as default (BTC chart → BTC 180, ETH chart → ETH 450). Engine fixed on 45m. Predictum-style statistics: newest-first list with emojis, TOTAL (max. profit), AVERAGE, WINNING signals (2 TP+), ACCURACY last N / last 15, default 50 signals. Checked against Predictum's BTC table: 8026.84% total, 160.54% average, 47/50, 100% last 15. The realised row is optional (off). v1.1–v1.5 (extra presets, timeframe scaling) stay in the archive only. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

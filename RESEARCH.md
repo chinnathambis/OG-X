@@ -78,6 +78,9 @@ The same engine was run on 15m, 30m, 45m, 1h, 2h and 4h, with the channel length
 - So there is no need to tune a timeframe per preset. v1.5 defines presets in time and scales them to whatever timeframe is used. Practical gain: a **4h chart loads 2+ years in TradingView**, so the stats table covers ~30+ trades instead of 7–11 on 45m.
 - Summary file: `research/tf_study_summary.csv`.
 
+## Decision (15 Oct 2026): main indicator = original Predictum
+The user chose to keep the main indicator as the faithful Predictum recreation (v2.0). The tuning work above (presets, exit study, timeframe study) is kept for reference, and v1.1–v1.5 stay in `indicator/archive/`.
+
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).
 - Crackōs = a clone. Best_Algos_Lab "Predictum" (2026) describes the same concept.
