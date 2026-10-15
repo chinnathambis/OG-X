@@ -15,6 +15,11 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - Use TradingView's legend (status line) instead. Set the indicator short title to "OG Breakout v2.x". Show only the Strategy input in the status line (`display = display.status_line`) and hide every other input (`display = display.none`), so the legend reads like "OG Breakout v2.3 BTCUSDT.P - Binance Futures | 45 min timeframe".
    - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P1 #3). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
    - No extra text on the chart.
+2. **Helper: big "+" on the upcoming trade, like Predictum** (requested 15 Oct 2026; Predictum v2.1.5 CHZ screenshot).
+   - Draw a large "+" cross a few bars to the right of the last candle, at the next entry price: green for the next Long, red for the next Short. Show both when both are possible.
+   - A blue callout tag with the entry price (e.g. "0.37869") points at the "+" from above and to the right. This replaces the current plain blue price tag.
+   - "Get ready to Long": a blue ↑ arrow under the candle with grey text "Get ready to Long" below it, no box; mirrored for Short (red ↓ above the candle). A small blue ▶ marker on the candle where the alert fired.
+   - Redrawn on the last bar only, so it never piles up on history. Shown when "Show Helper" is on.
 
 ## P1: agreed features
 1. **Next-signal line on the current trade.** Under "Show SL/TP of the current position", draw the next opposite signal as a dashed trailing line next to the fixed stop, and label whichever is closer "effective stop". Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/stop_mock.png`.
