@@ -27,6 +27,7 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
      - "Use the opposite signal as a Stop-Loss" on (no fixed stop): always "Next Short at X / this Long closes ±x% there" (can be a loss)
      - Mirrored for a Short ("Next Long at …").
    - **Price-scale marker:** a small box in the side colour on the right price scale at the next-signal price, like TradingView's own price labels.
+   - **Setting:** new toggle under HELPER SETTINGS, "Show next-signal tag on the current trade" (default on). Off hides the blue bubble only; the "+" and the price-scale marker stay.
    - Mock: `research/plus_exit_mock.png`.
 3. **Predictum X–style trade background, light and dark (moved up from P1 on 15 Oct 2026; VANA and GPS light screenshots, API3 dark screenshot `research/x/x_dark_api3.png`).**
    - The trade's shading starts at the stop line and runs to the chart edge on the profit side, instead of covering the full chart height. Long: from SL up to the top (teal). Short: from SL down to the bottom (pink). Nothing is shaded on the far side of the stop.
