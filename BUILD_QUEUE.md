@@ -28,13 +28,13 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
      - Mirrored for a Short ("Next Long at …").
    - **Price-scale marker:** a small box in the side colour on the right price scale at the next-signal price, like TradingView's own price labels.
    - **Setting:** new toggle under HELPER SETTINGS, "Show next-signal tag on the current trade" (default on). Off hides the blue bubble only; the "+" and the price-scale marker stay.
-   - Mock: `research/plus_exit_mock.png`.
+   - Mock: `research/mocks/approved/p0-2_next_signal_plus_and_blue_tag.png` (all approved mocks: `research/mocks/README.md`).
 3. **Predictum X–style trade background, light and dark (moved up from P1 on 15 Oct 2026; VANA and GPS light screenshots, API3 dark screenshot `research/x/x_dark_api3.png`).**
    - The trade's shading starts at the stop line and runs to the chart edge on the profit side, instead of covering the full chart height. Long: from SL up to the top (teal). Short: from SL down to the bottom (pink). Nothing is shaded on the far side of the stop.
    - It runs from the entry candle to the exit candle, with the red SL line along its edge.
    - New input under "Highlight the background": style "SL to edge (Predictum X)" (default) or "Full height (Predictum)".
    - Works in both themes, following the existing "Light theme" switch. Light: teal #5e9fa3 / pink #f48fb1 at ~55 % transparency (X look). Dark (match the API3 X screenshot): deep teal box (≈ #26a69a at ~85 % transparency) for longs and deep maroon (≈ #f23645 at ~80 % transparency) for shorts, so candles and TP lines stay readable.
-   - Mocks: `research/x_background_mock.png` (light), `research/x_background_mock_dark.png` (dark).
+   - Mocks: `research/mocks/approved/p0-3_x_background_light.png`, `research/mocks/approved/p0-3_x_background_dark.png`.
    - Build note: draw it as a box from the SL to a far price. Check in TradingView that the far edge doesn't squash the price scale. If it does, cap the box at the highest high (Long) or lowest low (Short) of the visible trade plus a margin.
 
 ## P1: agreed features
