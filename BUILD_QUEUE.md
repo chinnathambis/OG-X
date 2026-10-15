@@ -13,13 +13,21 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
 1. **Header tag overlaps TradingView's symbol line → do it the Predictum way** (reported 15 Oct 2026; Predictum screenshot: "Predictūm v.2.3.7 BTCUSDT.P - Binance Futures | 45 min timeframe" shown as the indicator's own line in TradingView's legend, directly under the symbol line, inside the normal legend box).
    - Remove the top-left header table (it prints over TradingView's symbol line).
    - Use TradingView's legend (status line) instead. Set the indicator short title to "OG Breakout v2.x". Show only the Strategy input in the status line (`display = display.status_line`) and hide every other input (`display = display.none`), so the legend reads like "OG Breakout v2.3 BTCUSDT.P - Binance Futures | 45 min timeframe".
-   - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P1 #3). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
+   - Name the Strategy options in that same format, e.g. "BTCUSDT.P - Binance Futures | 45 min timeframe" (v2.2), "BTCUSDT.P - Binance Futures | 45 min timeframe | v.5", "ETHUSDT.P - Binance Futures | 45 min timeframe", plus the coin presets (P1 #2). With Auto, the legend can only show "Auto", because inputs can't change themselves. Check in TradingView whether Auto should stay the default, or whether the coin's own option should be picked by hand so the legend shows the coin.
    - No extra text on the chart.
 2. **Helper: big "+" on the upcoming trade, like Predictum** (requested 15 Oct 2026; Predictum v2.1.5 CHZ screenshot).
-   - Draw a large "+" cross a few bars to the right of the last candle, at the next entry price: green for the next Long, red for the next Short. Show both when both are possible.
+   - Draw a normal-size "+" cross (not oversized, per 15 Oct 2026 feedback) a few bars to the right of the last candle, at the next entry price: green for the next Long, red for the next Short. Show both when both are possible.
    - A blue callout tag with the entry price (e.g. "0.37869") points at the "+" from above and to the right. This replaces the current plain blue price tag.
    - "Get ready to Long": a blue ↑ arrow under the candle with grey text "Get ready to Long" below it, no box; mirrored for Short (red ↓ above the candle). A small blue ▶ marker on the candle where the alert fired.
    - Redrawn on the last bar only, so it never piles up on history. Shown when "Show Helper" is on.
+   - **During an open trade (replaces the old P1 #1 trailing-line idea, agreed 15 Oct 2026):** always show the opposite "+" (normal size, side colour: red for the next Short, green for the next Long) at the price where the next signal would flip the trade, even when it is far away. Comparing it with the red stop line shows which exit comes first.
+   - **Bubble:** plain blue tag (option B, Predictum style), white monospace text, placed just right of the "+" at the same price with a small left pointer and a gap. No connector line. Wording:
+     - Normal mode, "+" inside the stop: "Next Short at 2,756.72 / this Long closes +7.3% there"
+     - Normal mode, "+" beyond the stop: "Next Short at 2,111.00 / your stop (−8%) hits first"
+     - "Use the opposite signal as a Stop-Loss" on (no fixed stop): always "Next Short at X / this Long closes ±x% there" (can be a loss)
+     - Mirrored for a Short ("Next Long at …").
+   - **Price-scale marker:** a small box in the side colour on the right price scale at the next-signal price, like TradingView's own price labels.
+   - Mock: `research/plus_exit_mock.png`.
 3. **Predictum X–style trade background, light and dark (moved up from P1 on 15 Oct 2026; VANA and GPS light screenshots, API3 dark screenshot `research/x/x_dark_api3.png`).**
    - The trade's shading starts at the stop line and runs to the chart edge on the profit side, instead of covering the full chart height. Long: from SL up to the top (teal). Short: from SL down to the bottom (pink). Nothing is shaded on the far side of the stop.
    - It runs from the entry candle to the exit candle, with the red SL line along its edge.
@@ -29,18 +37,13 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - Build note: draw it as a box from the SL to a far price. Check in TradingView that the far edge doesn't squash the price scale. If it does, cap the box at the highest high (Long) or lowest low (Short) of the visible trade plus a margin.
 
 ## P1: agreed features
-1. **Next-signal exit stub on the current trade (Mock B, agreed 15 Oct 2026).** Under "Show SL/TP of the current position":
-   - No trailing line and no history. On the last bar only, draw the next opposite signal as a short dashed stub starting ~2 bars right of the live candle, with a "+" at the level (red for a Short flip, green for a Long flip).
-   - The closer exit (fixed stop or next signal) is bold and tagged "◀ EXIT" with the % result if it hits, e.g. "◀ EXIT Next signal (Short) 2,757 +7.3%". The other one is dimmed and still shows its %.
-   - The fixed stop stays the normal red position line. It turns thin and dim once the next signal is closer.
-   - Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/effective_stop_mock_B.png` (trailing-line version rejected).
-2. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
+1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
    - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
    - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
    - Tooltip: low leverage only (1–2×).
    - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
 
-3. **Coin presets using the original Predictum strategies** (added 15 Oct 2026; top-coin scan done 15 Oct 2026, 40 coins, results in `research/orig_strategies_top_coins.csv`). Add a Strategy menu entry per qualifying coin; Auto picks it on that coin. A coin qualifies only if the strategy made money in both 2024–25 and 2026 (Binance futures, 45m, 1×, fees 0.08 %). One strategy per coin (the best one). Strategies: ETH = 450 / 0 % / 8 %, BTC v.5 = 210 / 0 % / 6 %, BTC v2.2 = 180 / 0.6 % / 6 %.
+2. **Coin presets using the original Predictum strategies** (added 15 Oct 2026; top-coin scan done 15 Oct 2026, 40 coins, results in `research/orig_strategies_top_coins.csv`). Add a Strategy menu entry per qualifying coin; Auto picks it on that coin. A coin qualifies only if the strategy made money in both 2024–25 and 2026 (Binance futures, 45m, 1×, fees 0.08 %). One strategy per coin (the best one). Strategies: ETH = 450 / 0 % / 8 %, BTC v.5 = 210 / 0 % / 6 %, BTC v2.2 = 180 / 0.6 % / 6 %.
    - **Add (✓):**
      - ZECUSDT.P (BTC v.5): +1244 % (2024–25 +207 %, 2026 +338 %), DD 60 %, PF 3.5. Mostly the big 2025–26 ZEC trend.
      - DOGEUSDT.P (ETH): +328 % (+249 %, +23 %), DD 45 %
@@ -69,4 +72,5 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
 - **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
 
 ## Dropped
+- **Next-signal trailing line / "◀ EXIT" stub (old P1 #1, 15 Oct 2026):** replaced by the opposite "+" and its blue bubble in P0 #2.
 - **Move the stop to entry after +3 %** (15 Oct 2026): Predictum's take-profits are tight (0.3 / 1 / 2 / 3 %), so +3 % is already TP4. A breakeven stop there would cut trades inside the TP ladder.
