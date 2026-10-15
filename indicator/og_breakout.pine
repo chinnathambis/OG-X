@@ -1,5 +1,5 @@
 //@version=6
-// OG Breakout v1.0 — original clean-room build (15 Oct 2026).
+// OG Breakout v1.2 (Universal preset, fees in realised stats) — v1.0 — original clean-room build (15 Oct 2026).
 // Engine: Donchian channel breakout on an engine timeframe (default 45m), intrabar touch entry,
 // one position at a time, fixed % stop, fixed % take-profit ladder, same-side re-entry after a stop.
 // Fitted on Binance USDT-M futures: reproduces a 50-signal BTC history exactly (see predictum/RESEARCH.md).
@@ -7,8 +7,8 @@ indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_l
 
 // ─────────────────────────────── Inputs
 G_MAIN = "⚙ Engine"
-presetIn = input.string("BTC · 180 · 0.6%", "Preset", options = ["BTC · 180 · 0.6%", "BTC · 210 · 0%", "ETH · 450 · 0%", "Custom"], group = G_MAIN,
-     tooltip = "Channel length (engine bars) · entry buffer. BTC 180/0.6% and BTC 210/0% were fitted on BTCUSDT.P, ETH 450/0% on ETHUSDT. Custom uses the three settings below.")
+presetIn = input.string("Universal · 500 · 0.6% · 3%", "Preset", options = ["Universal · 500 · 0.6% · 3%", "BTC · 180 · 0.6%", "BTC · 210 · 0%", "ETH · 450 · 0%", "Custom"], group = G_MAIN,
+     tooltip = "Universal: tuned on 2 years of Binance futures (Oct 2024 – Oct 2026) across 12 coins, validated on BTC, ETH, SOL, BNB, XRP, DOGE, ADA, LINK, AVAX, SUI. Not for HYPE or TAO. The BTC / ETH presets are the original Predictum settings (fitted on 2020–2023). Custom uses the three settings below.")
 engTfIn  = input.timeframe("45", "Engine timeframe", group = G_MAIN, tooltip = "The channel is built on this timeframe. Use a chart timeframe equal to or lower than it (45m, 15m, 5m…).")
 nU       = input.int(180, "Custom · channel length", minval = 10, maxval = 3000, group = G_MAIN)
 bufU     = input.float(0.6, "Custom · entry buffer %", minval = 0.0, step = 0.1, group = G_MAIN, tooltip = "Long entry = channel high minus this %, short entry = channel low plus this %.")
@@ -41,19 +41,23 @@ statsOn  = input.bool(true, "Show the statistics block", group = G_PNL)
 statsN   = input.int(15, "Recent signals listed", minval = 3, maxval = 40, group = G_PNL)
 statsPos = input.string("Top R", "Position", options = ["Top R", "Bottom R", "Top L", "Bottom L"], group = G_PNL)
 fromIn   = input.time(timestamp("2020-01-01T00:00:00"), "Count trades from", group = G_PNL)
+feeIn    = input.float(0.08, "Fees per trade % (round trip)", minval = 0, step = 0.01, group = G_PNL, tooltip = "Deducted from every realised result. 0.08% ≈ Binance taker in + out.")
 
 // ─────────────────────────────── Preset resolution
 int N = switch presetIn
+    "Universal · 500 · 0.6% · 3%" => 500
     "BTC · 180 · 0.6%" => 180
     "BTC · 210 · 0%"   => 210
     "ETH · 450 · 0%"   => 450
     => nU
 float BUF = switch presetIn
+    "Universal · 500 · 0.6% · 3%" => 0.006
     "BTC · 180 · 0.6%" => 0.006
     "BTC · 210 · 0%"   => 0.0
     "ETH · 450 · 0%"   => 0.0
     => bufU / 100
 float SL = switch presetIn
+    "Universal · 500 · 0.6% · 3%" => 0.03
     "BTC · 180 · 0.6%" => 0.06
     "BTC · 210 · 0%"   => 0.06
     "ETH · 450 · 0%"   => 0.08
@@ -114,6 +118,9 @@ shownPct(float pk, bool sl, int tp) =>
 fmtPct(float v) => (v >= 0 ? "+" : "") + str.tostring(v, "0.00") + "%"
 fmtPx(float v) => str.tostring(v, format.mintick)
 cleanSym() => str.replace_all(syminfo.ticker, ".P", "")
+var validCoins = array.from("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "LINKUSDT", "AVAXUSDT", "SUIUSDT")
+isUniversal = presetIn == "Universal · 500 · 0.6% · 3%"
+validNote() => isUniversal ? (validCoins.includes(cleanSym()) ? " ✓ validated" : " ⚠ not validated on this coin") : ""
 tpPrice(int d, float e, float p) => d == 1 ? e * (1 + p) : e / (1 + p)
 
 // ─────────────────────────────── 1) Stop-loss on the open position (checked before a new signal)
@@ -136,7 +143,7 @@ if newSig
     // close the previous trade (its peak excludes this bar)
     if dir != 0 and not na(ent)
         bool sl2 = slHit or slNow
-        float r = sl2 ? -SL : (px / ent - 1) * dir
+        float r = (sl2 ? -SL : (px / ent - 1) * dir) - feeIn / 100
         if entT >= fromIn
             stT.push(entT)
             stD.push(dir)
@@ -243,12 +250,12 @@ if barstate.islast
         tb.merge_cells(0, 0, 3, 0)
     else if statsOn
         int n = stT.size()
-        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + engTf, text_color = tx, text_size = size.small)
+        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + engTf + validNote(), text_color = tx, text_size = size.small)
         tb.merge_cells(0, 0, 3, 0)
         int row = 1
         // open trade first
         if dir != 0 and not na(ent)
-            float rOpen = slHit ? -SL : (close / ent - 1) * dir
+            float rOpen = (slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100
             tb.cell(0, row, str.format_time(entT, "dd.MM.yy HH:mm", "UTC"), text_color = tx, text_size = size.small)
             tb.cell(1, row, dir == 1 ? "Long" : "Short", text_color = dir == 1 ? colL : colS, text_size = size.small)
             tb.cell(2, row, fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)), text_color = tx, text_size = size.small)
@@ -297,6 +304,6 @@ if barstate.islast
             tb.cell(0, row, tpRow, text_color = tx, text_size = size.small)
             tb.merge_cells(0, row, 3, row)
             row += 1
-            tb.cell(0, row, "Realised (exit at stop or next signal, 1×): wins " + str.tostring(100.0 * realW / n, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+            tb.cell(0, row, "Realised (exit at stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / n, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
                  text_color = color.yellow, text_size = size.small)
             tb.merge_cells(0, row, 3, row)

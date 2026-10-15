@@ -35,6 +35,15 @@ Fitted presets:
 - Stats table: recent signals with the leveraged peak and the realised %. Summary: accuracy (TP# before stop), per-TP hit rates, realised win %, net and max DD (1x).
 - Alerts: alert() for entry (with the TP/SL plan), each TP, the stop and get-ready, plus alertconditions for Long and Short.
 
+## Preset tuning 2024–2026 (12 coins, Binance futures, 45m)
+Grid: N 60–1000, buffer 0–1.5%, stop 3–10% (900 combos × 12 coins). Realised model: exit at the stop or the next signal's entry, 0.08% fees, 1x. Train Oct 2024 – Dec 2025, test Jan – Oct 2026 (never seen while picking).
+- **Per-coin best picks overfit.** Their 2026 tests were flat or negative on ADA, AVAX, HYPE, XRP and LINK, and most picks sat on the grid's edges with ~15 trades.
+- **One universal setting holds up: N 500, buffer 0.6%, stop 3%.** It ranked top by median train score across coins. In the 2026 test, 10 of 12 coins finished positive: median +42%, median max DD 26%, PF 1.3–3.0, win rate 13–35% (small 3% losses, large trend winners). Neighbours (N 450–550, buffer 0.3–1%, stop 3–4%) behave the same, so this is not a lucky spike.
+- Universal 2026 test per coin: ETH +74%, DOGE +73%, SUI +79%, BNB +47%, XRP +43%, BTC +42%, AVAX +42%, SOL +28%, LINK +13%, ADA +3%, HYPE −21%, TAO −22%. HYPE and TAO also lost in training, so they are excluded.
+- The original Predictum BTC setting (180 / 0.6% / 6%) had a negative median train score in 2024–2025: the market favours longer channels and tighter stops now.
+- Files: `research/tune_grid_2024_2026.csv` (every combo), `research/universal_500_per_coin.csv`, `tools/tune_presets.py`, `tools/grid_all.py`, `tools/fetch_presets_data.py`.
+- OG Breakout v1.2: "Universal · 500 · 0.6% · 3%" is the default preset. The stats header shows "✓ validated" or "⚠ not validated on this coin". Realised stats now deduct fees (input, default 0.08%).
+
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).
 - Crackōs = a clone. Best_Algos_Lab "Predictum" (2026) describes the same concept.
