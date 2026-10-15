@@ -1,0 +1,362 @@
+//@version=6
+// OG Breakout v2.2 — Original Predictum recreation (15 Oct 2026). Settings laid out like Predictūm v2.2.3 / v2.4.2
+// (General settings, Helper settings) plus the Statistics block of Predictūm PRO. Built from v1.0 / v2.0; v1.1–v1.5 in archive/.
+// Engine (fixed on 45m, like Predictum): Donchian channel breakout, intrabar touch entry, one position at a time,
+// fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
+// Reproduces Predictum's 50-signal BTC history exactly (see RESEARCH.md).
+indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500)
+
+// ─────────────────────────────── Inputs (same layout as Predictum)
+strategyIn = input.string("Auto", "Strategy", options = ["Auto", "BTCUSDT.P | 45 min | v2.2", "BTCUSDT.P | 45 min | v.5", "ETHUSDT.P | 45 min", "Custom"],
+     tooltip = "The original Predictum strategies. Auto picks the strategy for the chart's coin (BTC → v2.2, ETH → ETH). Other coins use Custom (see the Custom strategy settings at the bottom).")
+
+G_GEN = "GENERAL SETTINGS"
+bgOn     = input.bool(true,  "Highlight the background", group = G_GEN)
+tpLblOn  = input.bool(false, "Show take-profit labels", group = G_GEN)
+entLblOn = input.bool(false, "Additional labels for position entry", group = G_GEN)
+timeOn   = input.bool(false, "Show position opening time", group = G_GEN)
+largeOn  = input.bool(true,  "Large Size of position entry/peak profit labels", group = G_GEN)
+dcaOn    = input.bool(false, "Show averaging levels", group = G_GEN, tooltip = "Averaging (DCA) levels at 7 / 15 / 25 % against the entry, as used by Predictum's DCA strategies. Display only: they are not used in the statistics.")
+oppSlOn  = input.bool(false, "Use the opposite signal as a Stop-Loss", group = G_GEN, tooltip = "No fixed stop-loss: every position is held until the opposite signal.")
+
+G_HLP = "HELPER SETTINGS"
+helperOn = input.bool(true,  "Show Helper", group = G_HLP, tooltip = "'Get ready to Long / Short' labels when price comes close to the next entry, and a price tag on the next entry level.")
+nextOn   = input.bool(false, "Show SL/TP of the next position", group = G_HLP)
+curOn    = input.bool(true,  "Show SL/TP of the current position", group = G_HLP)
+smallOn  = input.bool(false, "Text size: small", group = G_HLP)
+lightOn  = input.bool(false, "Light theme", group = G_HLP)
+
+G_ST = "STATISTICS"
+statsOn  = input.bool(true, "Show the statistics block", group = G_ST)
+statsBg  = input.color(#0d4a1e, "Statistics background", group = G_ST)
+statsN   = input.int(50, "The number of recent signals in statistics", minval = 5, maxval = 100, group = G_ST)
+statsPos = input.string("Top R", "Statistics position", options = ["Top R", "Bottom R", "Top L", "Bottom L"], group = G_ST)
+
+G_CUS = "CUSTOM STRATEGY (other coins)"
+nU       = input.int(180, "Channel length (45m bars)", minval = 10, maxval = 3000, group = G_CUS)
+bufU     = input.float(0.6, "Entry buffer %", minval = 0.0, step = 0.1, group = G_CUS)
+slU      = input.float(6.0, "Stop-loss %", minval = 0.1, step = 0.5, group = G_CUS)
+ladderU  = input.string("0.3, 1, 2, 3, 10", "Take-profits % (comma separated)", group = G_CUS)
+
+G_EXT = "EXTRA (not in Predictum)"
+levIn    = input.float(10, "Leverage for % labels", minval = 1, group = G_EXT)
+realOn   = input.bool(false, "Show realised results (exit at stop or next signal, 1×)", group = G_EXT)
+feeIn    = input.float(0.08, "Fees per trade % (realised results)", minval = 0, step = 0.01, group = G_EXT)
+
+// ─────────────────────────────── Strategy resolution
+string ENG_TF    = "45"      // Predictum's engine timeframe
+float  READY_PCT = 0.5       // Helper: 'Get ready' distance %
+string coinU = str.replace_all(str.replace_all(syminfo.ticker, ".P", ""), "PERP", "")
+string stratEff = strategyIn != "Auto" ? strategyIn : coinU == "BTCUSDT" ? "BTCUSDT.P | 45 min | v2.2" : coinU == "ETHUSDT" ? "ETHUSDT.P | 45 min" : "Custom"
+int N = switch stratEff
+    "BTCUSDT.P | 45 min | v2.2" => 180
+    "BTCUSDT.P | 45 min | v.5"  => 210
+    "ETHUSDT.P | 45 min"        => 450
+    => nU
+float BUF = switch stratEff
+    "BTCUSDT.P | 45 min | v2.2" => 0.006
+    "BTCUSDT.P | 45 min | v.5"  => 0.0
+    "ETHUSDT.P | 45 min"        => 0.0
+    => bufU / 100
+float SL = switch stratEff
+    "BTCUSDT.P | 45 min | v2.2" => 0.06
+    "BTCUSDT.P | 45 min | v.5"  => 0.06
+    "ETHUSDT.P | 45 min"        => 0.08
+    => slU / 100
+string ladderStr = stratEff == "Custom" ? ladderU : "0.3,1,2,3,10"
+
+parsePct(string s) =>
+    array<float> out = array.new<float>()
+    for p in str.split(s, ",")
+        float v = str.tonumber(str.replace_all(p, " ", ""))
+        if not na(v) and v > 0
+            out.push(v / 100)
+    out.sort(order.ascending)
+    out
+
+var array<float> TPS = parsePct(ladderStr)
+var array<float> DCA = array.from(0.07, 0.15, 0.25)
+int nTP = TPS.size()
+
+// ─────────────────────────────── Theme & sizes
+color colL  = #26a69a
+color colS  = #ef5350
+color colTP = #8bc34a
+color colSL = #ff1744
+color colHl = #2962ff
+color txCol = lightOn ? #131722 : color.white
+string szS  = smallOn ? size.tiny : size.small
+string szL  = largeOn ? (smallOn ? size.normal : size.large) : (smallOn ? size.small : size.normal)
+
+// ─────────────────────────────── Channel (no repaint: only closed 45m bars are used)
+bool tfOK = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(ENG_TF)
+[hhE, llE] = request.security(syminfo.tickerid, ENG_TF, [ta.highest(high, N)[1], ta.lowest(low, N)[1]], lookahead = barmerge.lookahead_on)
+float upL = hhE * (1 - BUF)
+float dnL = llE * (1 + BUF)
+
+// ─────────────────────────────── State
+var int   pos    = 0      // 1 long, -1 short, 0 flat after a stop
+var int   dir    = 0      // side of the last signal (background)
+var float ent    = na
+var int   entT   = na
+var float pkPx   = na
+var int   pkBar  = na
+var bool  slHit  = false
+var int   tpHit  = 0      // targets reached before the stop
+var label pkLbl  = na
+var array<line> curLines = array.new<line>()
+var bool  armL = true
+var bool  armS = true
+
+// statistics (closed trades)
+var array<int>   stT  = array.new<int>()
+var array<int>   stD  = array.new<int>()
+var array<float> stPk = array.new<float>()
+var array<int>   stTp = array.new<int>()
+var array<bool>  stSl = array.new<bool>()
+var array<float> stR  = array.new<float>()
+
+peakPct(int d, float e, float p) => d == 1 ? p / e - 1 : e / p - 1
+// label rule (matches the original's history): a stopped trade whose best move never reached TP1 shows as -SL × leverage
+shownPct(float pk, bool sl, int tp) =>
+    float tp1 = nTP > 0 ? TPS.get(0) : 0.0
+    sl and pk < tp1 ? -SL * levIn * 100 : pk * levIn * 100
+fmtPct(float v) => (v >= 0 ? "+" : "") + str.tostring(v, "0.00") + "%"
+fmtPx(float v) => str.tostring(v, format.mintick)
+cleanSym() => str.replace_all(syminfo.ticker, ".P", "")
+tpPrice(int d, float e, float p) => d == 1 ? e * (1 + p) : e / (1 + p)
+slPrice(int d, float e) => d == 1 ? e * (1 - SL) : e * (1 + SL)
+
+// ─────────────────────────────── 1) Stop-loss on the open position (checked before a new signal)
+bool slNow = false
+if not oppSlOn
+    if pos == 1 and low <= ent * (1 - SL)
+        pos := 0
+        slNow := true
+    else if pos == -1 and high >= ent * (1 + SL)
+        pos := 0
+        slNow := true
+
+// ─────────────────────────────── 2) Signals: intrabar touch of the channel level
+bool longSig  = tfOK and not na(upL) and high >= upL and pos != 1
+bool shortSig = tfOK and not na(dnL) and low <= dnL and pos != -1 and not longSig
+bool newSig   = longSig or shortSig
+
+if newSig
+    int   d  = longSig ? 1 : -1
+    float px = longSig ? math.max(open, upL) : math.min(open, dnL)
+    // close the previous trade (its peak excludes this bar)
+    if dir != 0 and not na(ent)
+        bool sl2 = slHit or slNow
+        float r = sl2 ? -SL : (px / ent - 1) * dir
+        stT.push(entT)
+        stD.push(dir)
+        stPk.push(peakPct(dir, ent, pkPx))
+        stTp.push(tpHit)
+        stSl.push(sl2)
+        stR.push(r)
+        for l in curLines
+            l.set_x2(bar_index)
+        if not na(pkLbl)
+            pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), sl2, tpHit)))
+    curLines.clear()
+    // open the new trade
+    pos := d
+    dir := d
+    ent := px
+    entT := time
+    slHit := false
+    tpHit := 0
+    pkPx := d == 1 ? high : low
+    pkBar := bar_index
+    armL := true
+    armS := true
+    label.new(bar_index, d == 1 ? low : high, d == 1 ? "Long" : "Short", style = d == 1 ? label.style_label_up : label.style_label_down,
+         color = d == 1 ? colL : colS, textcolor = color.white, size = szS)
+    if entLblOn or timeOn
+        string txt = (entLblOn ? (d == 1 ? "LONG" : "SHORT") + " was opened at " + fmtPx(px) : "") + (entLblOn and timeOn ? "\n" : "") +
+             (timeOn ? "Time: " + str.format_time(time, "d/M/yyyy HH:mm", "UTC") + " UTC" : "")
+        label.new(bar_index, px, txt, style = label.style_label_right, color = color.new(d == 1 ? colL : colS, 15), textcolor = color.white, size = szL)
+    if curOn
+        for p in TPS
+            curLines.push(line.new(bar_index, tpPrice(d, px, p), bar_index + 1, tpPrice(d, px, p), color = colTP, style = line.style_dotted, width = 1))
+        if not oppSlOn
+            curLines.push(line.new(bar_index, slPrice(d, px), bar_index + 1, slPrice(d, px), color = colSL, width = 2))
+    if dcaOn
+        for q in DCA
+            float dp = d == 1 ? px * (1 - q) : px * (1 + q)
+            curLines.push(line.new(bar_index, dp, bar_index + 1, dp, color = color.new(color.yellow, 20), style = line.style_dotted))
+    pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = szL)
+    // first bar's progress (targets can already be reached on the entry candle)
+    float fav0 = peakPct(d, px, pkPx)
+    while tpHit < nTP and fav0 >= TPS.get(tpHit)
+        tpHit += 1
+        if tpLblOn
+            label.new(bar_index, tpPrice(d, px, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
+        alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
+    // alert with full trade plan
+    string tpTxt = ""
+    for [i, p] in TPS
+        tpTxt += "\nTP " + str.tostring(i + 1) + ": " + fmtPx(tpPrice(d, px, p))
+    alert("#" + cleanSym() + " | Open " + (d == 1 ? "Long" : "Short") + "\nEntry: " + fmtPx(px) + "\nTimeframe: 45 min" + tpTxt +
+         (oppSlOn ? "\nSL: opposite signal" : "\nSL: " + fmtPx(slPrice(d, px))), alert.freq_once_per_bar)
+else if dir != 0 and not na(ent)
+    // 3) track the open trade
+    if not slHit
+        float fav = peakPct(dir, ent, dir == 1 ? high : low)
+        while tpHit < nTP and fav >= TPS.get(tpHit)
+            tpHit += 1
+            if tpLblOn
+                label.new(bar_index, tpPrice(dir, ent, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
+            alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
+    if slNow
+        slHit := true
+        alert("#" + cleanSym() + " | Stop-loss hit", alert.freq_once_per_bar)
+    bool newPk = dir == 1 ? high > pkPx : low < pkPx
+    if newPk
+        pkPx := dir == 1 ? high : low
+        pkBar := bar_index
+    for l in curLines
+        l.set_x2(bar_index)
+
+// peak label follows the best price
+if not na(pkLbl) and dir != 0 and not na(ent)
+    pkLbl.set_xy(pkBar, pkPx)
+    pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)))
+
+// ─────────────────────────────── 4) Helper: 'Get ready' labels and next-entry tags
+if helperOn and tfOK and not newSig
+    if pos != 1 and not na(upL) and armL and high >= upL * (1 - READY_PCT / 100)
+        label.new(bar_index, low, "Get ready to Long", style = label.style_arrowup, color = colHl, textcolor = txCol, size = szS)
+        alert("#" + cleanSym() + " | Get ready to Long · entry " + fmtPx(upL), alert.freq_once_per_bar)
+        armL := false
+    if pos != -1 and not na(dnL) and armS and low <= dnL * (1 + READY_PCT / 100)
+        label.new(bar_index, high, "Get ready to Short", style = label.style_arrowdown, color = colS, textcolor = txCol, size = szS)
+        alert("#" + cleanSym() + " | Get ready to Short · entry " + fmtPx(dnL), alert.freq_once_per_bar)
+        armS := false
+if not na(upL) and close < upL * (1 - 2 * READY_PCT / 100)
+    armL := true
+if not na(dnL) and close > dnL * (1 + 2 * READY_PCT / 100)
+    armS := true
+
+// next-entry tags and next-position SL/TP (redrawn on the last bar)
+var array<label> nxtLbls  = array.new<label>()
+var array<line>  nxtLines = array.new<line>()
+drawNext(int d, float e) =>
+    nxtLbls.push(label.new(bar_index + 3, e, fmtPx(e), style = label.style_label_left, color = colHl, textcolor = color.white, size = szS))
+    if nextOn
+        nxtLines.push(line.new(bar_index, e, bar_index + 12, e, color = d == 1 ? colL : colS, width = 2))
+        nxtLbls.push(label.new(bar_index + 12, e, (d == 1 ? "Long" : "Short") + " entry", style = label.style_label_left, color = d == 1 ? colL : colS, textcolor = color.white, size = size.tiny))
+        if not oppSlOn
+            nxtLines.push(line.new(bar_index, slPrice(d, e), bar_index + 12, slPrice(d, e), color = colSL, width = 2))
+            nxtLbls.push(label.new(bar_index + 12, slPrice(d, e), "Stop-loss", style = label.style_label_left, color = colSL, textcolor = color.white, size = size.tiny))
+        for [i, p] in TPS
+            nxtLines.push(line.new(bar_index, tpPrice(d, e, p), bar_index + 12, tpPrice(d, e, p), color = colTP, style = line.style_dotted))
+            nxtLbls.push(label.new(bar_index + 12, tpPrice(d, e, p), "Take-profit #" + str.tostring(i + 1), style = label.style_label_left, color = colTP, textcolor = color.white, size = size.tiny))
+if barstate.islast
+    for l in nxtLbls
+        l.delete()
+    for l in nxtLines
+        l.delete()
+    nxtLbls.clear()
+    nxtLines.clear()
+    if helperOn and tfOK
+        if pos != 1 and not na(upL)
+            drawNext(1, upL)
+        if pos != -1 and not na(dnL)
+            drawNext(-1, dnL)
+
+// ─────────────────────────────── Background & alerts
+bgcolor(bgOn and dir == 1 ? color.new(colL, lightOn ? 88 : 80) : bgOn and dir == -1 ? color.new(colS, lightOn ? 88 : 80) : na, title = "Background")
+alertcondition(longSig, "Long", "OG Breakout: LONG on {{ticker}} at {{close}}")
+alertcondition(shortSig, "Short", "OG Breakout: SHORT on {{ticker}} at {{close}}")
+
+// ─────────────────────────────── 5) Header tag and warning (like Predictum)
+var table hd = table.new(position.top_left, 1, 1)
+var table wn = table.new(position.middle_center, 1, 4, bgcolor = color.new(#d32f2f, 10))
+if barstate.islast
+    hd.cell(0, 0, "OG Breakout v2.2 " + syminfo.ticker + " - " + syminfo.prefix + (syminfo.type == "crypto" ? " Futures" : "") + " | 45 min timeframe" +
+         (stratEff == "Custom" ? " | Custom" : ""), text_color = color.new(txCol, 30), text_size = szS, bgcolor = color.new(lightOn ? color.white : #131722, 30))
+    wn.clear(0, 0, 0, 3)
+    if not tfOK
+        wn.cell(0, 0, "WARNING!\nYour chart is configured incorrectly.", text_color = color.white, text_size = size.normal)
+        wn.cell(0, 1, "HOW TO SET IT UP CORRECTLY?", text_color = color.white, text_size = size.normal)
+        wn.cell(0, 2, "✅ Set the timeframe to 45 minutes (or lower).", text_color = color.white, text_size = size.normal)
+        wn.cell(0, 3, strategyIn == "Auto" and stratEff == "Custom" ? "ℹ No Predictum strategy for this coin: Custom settings are used." : "", text_color = color.white, text_size = size.small)
+
+// ─────────────────────────────── 6) Statistics block (Predictum style)
+emo(float v) => v < 0 ? "🚫" : v < 10 ? "🤔" : v < 20 ? "😚" : v < 30 ? "😎" : v < 50 ? "🙌" : v < 200 ? "🔥" : "🎰"
+var table tb = table.new(statsPos == "Top R" ? position.top_right : statsPos == "Bottom R" ? position.bottom_right : statsPos == "Top L" ? position.top_left : position.bottom_left,
+     1, 115, bgcolor = lightOn ? color.new(#c8e6c9, 0) : statsBg, border_width = 0)
+if barstate.islast
+    tb.clear(0, 0, 0, 114)
+    if statsOn and tfOK
+        // newest first: open trade, then closed trades
+        array<int>   lT = array.new<int>()
+        array<int>   lD = array.new<int>()
+        array<float> lP = array.new<float>()   // shown peak %, leveraged
+        array<float> lW = array.new<float>()   // raw peak move
+        array<float> lR = array.new<float>()   // realised, 1x, after fees
+        if dir != 0 and not na(ent)
+            lT.push(entT)
+            lD.push(dir)
+            lP.push(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit))
+            lW.push(peakPct(dir, ent, pkPx))
+            lR.push((slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100)
+        int n = stT.size()
+        for k = 0 to math.max(n - 1, 0)
+            int i = n - 1 - k
+            if n == 0 or lT.size() >= statsN
+                break
+            lT.push(stT.get(i))
+            lD.push(stD.get(i))
+            lP.push(shownPct(stPk.get(i), stSl.get(i), stTp.get(i)))
+            lW.push(stPk.get(i))
+            lR.push(stR.get(i) - feeIn / 100)
+        int m = lT.size()
+        tb.cell(0, 0, "┌──── Statistics on " + cleanSym() + " ────┐", text_color = txCol, text_size = szS)
+        int row = 1
+        float tot = 0.0
+        int wins = 0
+        int wins15 = 0
+        float tp2 = nTP >= 2 ? TPS.get(1) : nTP == 1 ? TPS.get(0) : 0.01
+        float eq = 1.0
+        float peakEq = 1.0
+        float maxDD = 0.0
+        int realW = 0
+        if m > 0
+            for k = 0 to m - 1
+                float v = lP.get(k)
+                tb.cell(0, row, str.format_time(lT.get(k), "d.M.yy H:mm", "UTC") + " | " + (lD.get(k) == 1 ? "Long" : "Short") + " | " + str.tostring(v, "0.##") + "% " + emo(v),
+                     text_color = txCol, text_size = szS)
+                row += 1
+                tot += v
+                bool w = lW.get(k) >= tp2
+                wins += w ? 1 : 0
+                wins15 += (w and k < 15) ? 1 : 0
+            // realised, oldest first
+            for k = m - 1 to 0
+                eq *= 1 + lR.get(k)
+                peakEq := math.max(peakEq, eq)
+                maxDD := math.max(maxDD, 1 - eq / peakEq)
+                realW += lR.get(k) > 0 ? 1 : 0
+            int n15 = math.min(15, m)
+            float acc = 100.0 * wins / m
+            float acc15 = 100.0 * wins15 / n15
+            tb.cell(0, row, "──────────────────────", text_color = txCol, text_size = szS)
+            row += 1
+            tb.cell(0, row, "💵 TOTAL (max. profit): " + str.tostring(tot, "0.##") + "%", text_color = txCol, text_size = szS)
+            row += 1
+            tb.cell(0, row, "1️⃣ AVERAGE profit: " + str.tostring(tot / m, "0.##") + "%", text_color = txCol, text_size = szS)
+            row += 1
+            tb.cell(0, row, "👍 WINNING signals: " + str.tostring(wins) + "/" + str.tostring(m) + " (2 TP+ reached)", text_color = txCol, text_size = szS)
+            row += 1
+            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(m) + "): " + str.tostring(acc, "0") + "% (2 TP+) " + (acc >= 85 ? "📈 - very high accuracy" : acc >= 70 ? "📈 - high accuracy" : "📉 - low accuracy"), text_color = txCol, text_size = szS)
+            row += 1
+            tb.cell(0, row, "💎 ACCURACY (last " + str.tostring(n15) + "): " + str.tostring(acc15, "0") + "% " + (acc15 >= 85 ? "📈 - excellent dynamics" : acc15 >= 70 ? "📈 - good dynamics" : "📉 - weak dynamics"), text_color = txCol, text_size = szS)
+            row += 1
+            if realOn
+                tb.cell(0, row, "Realised (stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+                     text_color = lightOn ? #b71c1c : color.yellow, text_size = szS)
+                row += 1
+        tb.cell(0, row, "└────────────────────────┘", text_color = txCol, text_size = szS)

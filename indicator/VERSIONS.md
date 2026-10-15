@@ -18,4 +18,6 @@ The current build is always `indicator/og_breakout.pine`. Every released version
 
 | v2.1 | 15 Oct 2026 | `archive/og_breakout_v2.1.pine` | Settings laid out like Predictūm v2.2.3 / v2.4.2: Strategy · GENERAL SETTINGS (Highlight the background, Show take-profit labels, Additional labels for position entry, Show position opening time, Large size of entry/peak labels, Show averaging levels, Use the opposite signal as a Stop-Loss) · HELPER SETTINGS (Show Helper, Show SL/TP of the next position, Show SL/TP of the current position, Text size: small, Light theme) · STATISTICS from Predictūm PRO (show block, background colour, number of recent signals). Engine fixed on 45m (no timeframe input). Header tag "OG Breakout v2.1 BTCUSDT.P - BINANCE Futures \| 45 min timeframe" and a Predictum-style WARNING box on a chart above 45m. Custom strategy and extras (leverage, realised row, fees) in their own groups at the bottom. |
 
+| v2.2 | 15 Oct 2026 | `archive/og_breakout_v2.2.pine` | Fix: take-profits reached on the entry candle were counted but had no "TP ✓" label and no alert (seen on an ETH short at 2626.01, where TP1 and TP2 were missing). Labels and alerts now fire on the entry candle too. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

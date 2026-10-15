@@ -1,5 +1,5 @@
 //@version=6
-// OG Breakout v2.1 — Original Predictum recreation (15 Oct 2026). Settings laid out like Predictūm v2.2.3 / v2.4.2
+// OG Breakout v2.2 — Original Predictum recreation (15 Oct 2026). Settings laid out like Predictūm v2.2.3 / v2.4.2
 // (General settings, Helper settings) plus the Statistics block of Predictūm PRO. Built from v1.0 / v2.0; v1.1–v1.5 in archive/.
 // Engine (fixed on 45m, like Predictum): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
@@ -187,10 +187,13 @@ if newSig
             float dp = d == 1 ? px * (1 - q) : px * (1 + q)
             curLines.push(line.new(bar_index, dp, bar_index + 1, dp, color = color.new(color.yellow, 20), style = line.style_dotted))
     pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = szL)
-    // first bar's progress
+    // first bar's progress (targets can already be reached on the entry candle)
     float fav0 = peakPct(d, px, pkPx)
     while tpHit < nTP and fav0 >= TPS.get(tpHit)
         tpHit += 1
+        if tpLblOn
+            label.new(bar_index, tpPrice(d, px, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
+        alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
     // alert with full trade plan
     string tpTxt = ""
     for [i, p] in TPS
@@ -272,7 +275,7 @@ alertcondition(shortSig, "Short", "OG Breakout: SHORT on {{ticker}} at {{close}}
 var table hd = table.new(position.top_left, 1, 1)
 var table wn = table.new(position.middle_center, 1, 4, bgcolor = color.new(#d32f2f, 10))
 if barstate.islast
-    hd.cell(0, 0, "OG Breakout v2.1 " + syminfo.ticker + " - " + syminfo.prefix + (syminfo.type == "crypto" ? " Futures" : "") + " | 45 min timeframe" +
+    hd.cell(0, 0, "OG Breakout v2.2 " + syminfo.ticker + " - " + syminfo.prefix + (syminfo.type == "crypto" ? " Futures" : "") + " | 45 min timeframe" +
          (stratEff == "Custom" ? " | Custom" : ""), text_color = color.new(txCol, 30), text_size = szS, bgcolor = color.new(lightOn ? color.white : #131722, 30))
     wn.clear(0, 0, 0, 3)
     if not tfOK
