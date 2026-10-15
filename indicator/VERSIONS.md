@@ -1,6 +1,6 @@
 # OG Breakout — versions
 
-The current build is always `indicator/og_breakout.pine`. Every released version is kept in `indicator/archive/`.
+The current build is always `indicator/og_x.pine` (named `og_breakout.pine` up to v2.3). Every released version is kept in `indicator/archive/`.
 
 | Version | Date | File | Changes |
 |---|---|---|---|

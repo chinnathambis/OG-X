@@ -1,25 +1,31 @@
-# Predictum research → OG Breakout
+# OG X
 
-A clean-room study of the Predictum crypto indicator. The conclusions come from its public screenshots, videos and Binance price data; none of its code was used. The result is **OG Breakout**, an original Pine Script v6 indicator.
+**OG X v.2.4.2 + Alerts**: an original Pine Script v6 indicator for TradingView. It trades channel breakouts on 45-minute bars, with presets for 12 coins plus the BTC strategies. Developed from a clean-room study of the Predictum indicator: public screenshots, videos and exchange price data only, none of its code. Not affiliated with Predictum.
 
 ## Repository
 | Path | What |
 |---|---|
-| `indicator/og_breakout.pine` | OG Breakout v1.0 (Pine v6). Paste into TradingView's Pine Editor. |
-| `RESEARCH.md` | The findings: engine rules, fitted presets, TP/SL ladders, reality-check backtest. |
-| `tools/fetch_data.py` | Downloads Binance USDT-M futures 15m candles into `data/` (run on a machine that can reach Binance). |
-| `tools/fetch_presets_data.py`, `tools/tune_presets.py`, `tools/grid_all.py` | 2-year data for 12 coins and the preset tuner |
-| `research/*.csv` | Tuning grid results |
-| `tools/fit_engine.py` | Loader, 45m resampler, simulator and the 80 ground-truth signals. Prints `BTC v.5 matched 50 / 50`. |
-| `research/screenshots/`, `research/videos/` | Source material collected from public posts. |
+| `indicator/og_x.pine` | **Current build.** Paste into TradingView's Pine Editor. |
+| `indicator/archive/` | Every released version (OG Breakout v1.0 – v2.3, OG X v.2.4.0+). |
+| `indicator/VERSIONS.md` | What changed in each version. |
+| `BUILD_QUEUE.md` | Live build list: P0 / P1 / P2, shipped items and dropped ideas. |
+| `FEATURES.md` | Feature list and idea history. |
+| `RESEARCH.md` | Findings: engine rules, fits, presets, top-coin scan, Predictum X notes. |
+| `research/mocks/` | Approved UI mocks (`README.md` explains each) and superseded ones. |
+| `research/screenshots/`, `research/videos/` | Source material from public posts. |
+| `research/x/` | Predictum X signal screenshots (`signals/`) and `x_signals.csv`. |
+| `research/*.csv` | Tuning grids, timeframe study, top-coin results. |
+| `data/*.csv.gz` | Binance USDT-M futures 15m candles (Oct 2024 – Oct 2026, 40 coins, plus BTC/ETH history). `gunzip -k data/*.gz` before running the tools. |
+| `data_bybit/*.csv.gz` | Bybit 15m candles around the Predictum X signals. |
+| `tools/` | Fetch scripts (run on a machine that can reach the exchange), the fit engine, tuners and studies. |
 
 ## Quick start
 ```
-python3 tools/fetch_data.py      # creates data/BTCUSDT_15m.csv, data/ETHUSDT_15m.csv
-python3 tools/fit_engine.py      # -> BTC v.5 matched 50 / 50
+gunzip -k data/*.gz                 # or: python3 tools/fetch_data.py
+python3 tools/fit_engine.py         # -> BTC v.5 matched 50 / 50
 ```
 
 ## The engine in one paragraph
-A Donchian channel breakout on 45-minute bars. Long when price touches highest(high, N)[1] × (1 − buffer). Short when it touches lowest(low, N)[1] × (1 + buffer). Entry fills intrabar, one position at a time, a fixed % stop, a fixed % take-profit ladder, and a same-side re-entry after a stop. The original Predictum BTC presets are N = 180 with a 0.6% buffer, or N = 210 with none; both use a 6% stop. The tuned default for 2024–2026 is **Universal: N 500, 0.6% buffer, 3% stop**, validated on 10 coins (see RESEARCH.md).
+A Donchian channel breakout on 45-minute bars. A long fires when price touches highest(high, N)[1] × (1 − buffer); a short fires when it touches lowest(low, N)[1] × (1 + buffer). Entry fills intrabar, with one position at a time. Each trade has a fixed % stop (or the opposite signal), a fixed % take-profit ladder (0.3 / 1 / 2 / 3 / 10 %), and a same-side re-entry after a stop. The strategies are BTC v2.2 (180 bars / 0.6 % buffer / 6 % stop), BTC v.5 (210 / 0 / 6 %) and ETH (450 / 0 / 8 %).
 
-Not affiliated with Predictum. For research and education; not financial advice.
+For research and education; not financial advice.

@@ -1,6 +1,6 @@
 # OG Breakout — features
 
-Original Predictum recreation (clean-room). Current build: **v2.1** (`indicator/og_breakout.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
+Original Predictum recreation (clean-room). Current build: **OG X v.2.4.2** (`indicator/og_x.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
 
 ## Engine (Predictum's, recovered and verified)
 - **Channel breakout on 45m bars.** Long level = highest high of the last N 45m bars (excluding the current one) × (1 − buffer). Short level = lowest low × (1 + buffer).
