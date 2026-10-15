@@ -40,6 +40,8 @@ Take-profits (Predictum strategies): 0.3 / 1 / 2 / 3 / 10 %. Short TPs = entry /
 - **Alerts:** entry with the full TP/SL plan, each TP reached, stop-loss hit, get ready, plus Long / Short alertconditions.
 
 ## Ideas and build list
+**The live list with priorities (P0 bugs / P1 agreed / P2 ideas) is `BUILD_QUEUE.md`.** Nothing is built until the user says "build"; then the whole queue ships as one version. The list below is the history of ideas.
+
 Status: **Queued** = agreed, waiting to be built. **Idea** = discussed, not decided. **Dropped** = decided against.
 1. **Queued — show the next-signal line on the current trade.** Under "Show SL/TP of the current position", also draw the next opposite signal as a dashed trailing line, so it's visible which of the fixed stop and the next signal is closer (as in `research/stop_mock.png`). Label whichever is active "effective stop".
 2. **Queued — strategy type "SL" / "DCA + SL"** (Predictum PRO). Enter with ¼, add ¼ at −7 / −15 / −25 %, TPs from the average price, final stop 8 % beyond the last level, held until the opposite signal or the stop. Show averaging buys used per trade and the worst-case loss (~22 % of capital). Tooltip: low leverage only. Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
