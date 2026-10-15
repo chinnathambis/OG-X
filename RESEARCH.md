@@ -108,3 +108,9 @@ Binance futures 15m → 45m, Oct 2024 – Oct 2026, 1×, fees 0.08 %, exit at th
 - 14 of 40 coins qualify on at least one strategy. The best per coin: ZEC (BTC v.5) +1244 %, DOGE (ETH) +328 %, ARB (v2.2) +180 % ⚠, SUI (ETH) +171 % ⚠, QNT (ETH) +143 %, ETH (ETH) +141 %, UNI (v2.2) +117 % ⚠, 1000PEPE (v.5) +110 %, XRP (ETH) +101 %, AAVE (ETH) +100 %, SOL (v.5) +49 %, PAXG (v2.2) +36 % (DD 11 %).
 - AKE (+1385 %) and PUMP are too new to trust (listed 2025).
 - The ETH strategy (450 bars) carries most of the winners; the slow channel suits trending alts. BTC itself still doesn't qualify on any of the three.
+
+## Data point: Predictum PRO "New Era" (screenshot, 16 Oct 2026)
+- Legend: "Predictūm PRO | New Era v.1.1.1 No DCA + SL 20 20 TP 5", on a **30 min** chart. This is a different product line from the 45-min strategies.
+- Its warning box checks four things: timeframe 30 min, a supported ticker, BINANCE exchange, and a ticker ending in ".P".
+- It shows a long list of supported tickers for the "No DCA + SL" type. Visible part: 1000SHIB, 1INCH, ALICE, ALPHA, API3, ARPA, ATA, ATOM, AXS, BAKE, BAND, BEL, CHZ, COMP, COTI, CRV, DASH, DENT, DOT, DUSK, DYDX, ENJ, FIL, FLOW, GRT … So it runs per-coin settings for many alts.
+- The name suggests parameters "20 20 TP 5". These are unknown; possibly SL 20 % / 20 bars / 5 TPs. Not researched.
