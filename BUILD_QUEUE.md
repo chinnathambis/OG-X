@@ -7,10 +7,18 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **v2.3** (15 Oct 2026: all P0 items shipped, see "Shipped in v2.3" below). Next build: P1.
+Current release: **v2.3**. Next build: v2.4 (P0 below).
 
-## P0: bugs
-_None open._
+## P0: bugs and fixes for v2.4 (from v2.3 testing, 15–16 Oct 2026; mocks in `research/mocks/approved/v24_*`)
+1. **Statistics table: keep the Predictum style, fix the layout (option A).** Same green centred block and emojis. Wrap the long last lines onto two lines (e.g. "Realised (stop or next signal, 1×, fees 0.08%):" / "wins … · net … · max DD …", and the two ACCURACY lines) so nothing runs over the chart or the price scale. No "Modern" style.
+2. **TP levels: no tags on the chart (option B).** Remove the "TP1 ✓" chips. Expose TP1–TP5 and SL of the current trade as plots titled "TP1" … "TP5" and "SL" (scale only, not in the legend), so TradingView's own price-scale setting "Indicators and financials → name and value labels" shows them. Nothing custom drawn on the scale.
+3. **When there is no open trade (after a stop): show only the closer "+" (option 2).** One "+" and one blue tag "Next Long at X / +x% from price" (or Short). The other side appears when price gets closer than the first. Fixes the two identical blue price tags.
+4. **"Get ready" tag: blue pill with a triangle only.** "▲ Get ready" under the candle for a Long, "▼ Get ready" above the candle for a Short, blue, same size as the other tags. No arrow, no grey text, no dashed line, no ▶ marker.
+5. **Name format "<name> v.x.y.z + Alerts".** Short title like "OG Breakout v.2.4.0 + Alerts" (name to be confirmed by the user; not "Predictum X", which is Predictum's product name). Remove "recreation" wording from code comments and setting names.
+6. **Bug: "⚠ UNI preset" note shown on a 1000PEPEUSDT.P chart** (v2.3 screenshot). Check how the preset is picked with Auto and fix.
+7. **Legend shows only the name, not the Strategy.** Ask the user to check Chart settings → Status line → "Indicator arguments" and the indicator's Style → "Inputs in status line". If both are on and it still doesn't show, mock a fallback.
+
+**Awaiting approval (mocked 15 Oct 2026):** solid TP lines as thick as the SL line, the big "+" drawn as a cross, one tag size for all tags (only Long/Short small), SL/TP lines ending with the trade (same range as the background).
 
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
