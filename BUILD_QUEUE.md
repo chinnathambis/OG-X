@@ -10,7 +10,7 @@
 Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before this way of working was agreed).
 
 ## P0: bugs
-_(none open)_
+1. **Header tag overlaps TradingView's symbol line** (reported 15 Oct 2026, XPLUSDT.P 30m). The tag "OG Breakout v2.2 XPLUSDT.P - BINANCE Futures | 45 min timeframe | Custom" sits in the top-left corner, under TradingView's own symbol/OHLC line, so the two texts print over each other. Fix: move the tag to the bottom-left corner, and add a "Show header tag" switch (Helper settings, default on). Keep it on one short line.
 
 ## P1: agreed features
 1. **Next-signal line on the current trade.** Under "Show SL/TP of the current position", draw the next opposite signal as a dashed trailing line next to the fixed stop, and label whichever is closer "effective stop". Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/stop_mock.png`.
