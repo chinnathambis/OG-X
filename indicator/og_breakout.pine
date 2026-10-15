@@ -1,15 +1,15 @@
 //@version=6
-// OG Breakout v1.4 (16 presets, corrected short-trade maths in tuning) — v1.0 — original clean-room build (15 Oct 2026).
+// OG Breakout v1.5 (presets scale to any timeframe) — v1.0 — original clean-room build (15 Oct 2026).
 // Engine: Donchian channel breakout on an engine timeframe (default 45m), intrabar touch entry,
 // one position at a time, fixed % stop, fixed % take-profit ladder, same-side re-entry after a stop.
 // Fitted on Binance USDT-M futures: reproduces a 50-signal BTC history exactly (see predictum/RESEARCH.md).
-indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500, max_bars_back = 1000)
+indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500, max_bars_back = 5000)
 
 // ─────────────────────────────── Inputs
 G_MAIN = "⚙ Engine"
 presetIn = input.string("Universal · 500 · 0.6% · 3%", "Preset", options = ["Universal · 500 · 0.6% · 3%", "Fast · 60 · 0% · 10%", "Active · 240 · 0% · 4%", "Medium · 340 · 0% · 3%", "Swing · 450 · 1% · 3%", "Swing · 550 · 0% · 4%", "Slow · 600 · 0.6% · 3%", "Slow · 800 · 1% · 3%", "Very slow · 850 · 1.5% · 4%", "BTC tuned · 700 · 1% · 3%", "ETH tuned · 700 · 0.6% · 3%", "DOGE tuned · 640 · 0% · 4%", "SUI tuned · 700 · 1% · 4%", "Predictum BTC · 180 · 0.6% · 6%", "Predictum BTC · 210 · 0% · 6%", "Predictum ETH · 450 · 0% · 8%", "Custom"], group = G_MAIN,
      tooltip = "Name · channel length (engine bars) · entry buffer · stop. Universal-family presets were tuned on 12 Binance futures coins (train Oct 2024 – Dec 2025, test Jan – Oct 2026); slower = fewer, longer trades. 'Coin tuned' presets fit one coin only. Predictum presets are the original settings (fitted on 2020–2023). The stats header shows whether the chart coin was profitable with the preset in both periods. Custom uses the three settings below.")
-engTfIn  = input.timeframe("45", "Engine timeframe", group = G_MAIN, tooltip = "The channel is built on this timeframe. Use a chart timeframe equal to or lower than it (45m, 15m, 5m…).")
+engTfIn  = input.timeframe("", "Engine timeframe", group = G_MAIN, tooltip = "Empty = same as the chart. Presets are set in time (days) and scale to any timeframe, so 15m, 45m, 1h and 4h give nearly the same signals. Higher timeframes load more history, so the statistics cover more trades (4h ≈ 2+ years). The chart timeframe must be equal to or lower than the engine timeframe.")
 nU       = input.int(180, "Custom · channel length", minval = 10, maxval = 3000, group = G_MAIN)
 bufU     = input.float(0.6, "Custom · entry buffer %", minval = 0.0, step = 0.1, group = G_MAIN, tooltip = "Long entry = channel high minus this %, short entry = channel low plus this %.")
 slU      = input.float(6.0, "Custom · stop-loss %", minval = 0.1, step = 0.5, group = G_MAIN)
@@ -138,7 +138,13 @@ int nTP = TPS.size()
 // ─────────────────────────────── Channel (no repaint: only closed engine bars are used)
 string engTf = engTfIn == "" ? timeframe.period : engTfIn
 bool   tfOK  = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(engTf)
-[hhE, llE] = request.security(syminfo.tickerid, engTf, [ta.highest(high, N)[1], ta.lowest(low, N)[1]], lookahead = barmerge.lookahead_on)
+// presets are defined in 45m bars; scale them to the engine timeframe so they cover the same number of days
+int    engSec = timeframe.in_seconds(engTf)
+int    NRaw   = presetIn == "Custom" ? N : math.max(10, int(math.round(N * 2700.0 / engSec)))
+bool   nCap   = NRaw > 4900
+int    NE     = math.min(NRaw, 4900)
+float  NDays  = NE * engSec / 86400.0
+[hhE, llE] = request.security(syminfo.tickerid, engTf, [ta.highest(high, NE)[1], ta.lowest(low, NE)[1]], lookahead = barmerge.lookahead_on)
 float upL = hhE * (1 - BUF)
 float dnL = llE * (1 + BUF)
 
@@ -303,7 +309,7 @@ if barstate.islast
         tb.merge_cells(0, 0, 3, 0)
     else if statsOn
         int n = stT.size()
-        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + engTf + validNote(), text_color = tx, text_size = size.small)
+        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + timeframe.period + (engTf != timeframe.period ? " (engine " + engTf + ")" : "") + " · " + str.tostring(NE) + " bars ≈ " + str.tostring(NDays, "0.0") + " days" + (nCap ? " ⚠ capped, use a higher timeframe" : "") + validNote(), text_color = tx, text_size = size.small)
         tb.merge_cells(0, 0, 3, 0)
         int row = 1
         // open trade first

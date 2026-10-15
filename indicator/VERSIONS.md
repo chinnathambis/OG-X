@@ -12,4 +12,6 @@ The current build is always `indicator/og_breakout.pine`. Every released version
 
 | v1.4 | 15 Oct 2026 | `archive/og_breakout_v1.4.pine` | Tuning bug fixed (short trades closed on a flip were scored as entry/exit − 1 instead of 1 − exit/entry, overstating winning shorts). Presets re-checked: "✓" coin lists updated, "SOL tuned" removed (its 2026 test turned negative). 16 presets. Engine and chart unchanged. |
 
+| v1.5 | 15 Oct 2026 | `archive/og_breakout_v1.5.pine` | Engine timeframe defaults to the chart's. Preset channel lengths are converted to time and scaled to the engine timeframe (Universal = 500 × 45m ≈ 15.6 days = 125 × 3h …), so presets work on 15m, 45m, 1h, 2h or 4h charts. The stats header shows bars ≈ days. max_bars_back 5000, channel capped at 4,900 bars with a warning. On a 45m chart the signals are identical to v1.4. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

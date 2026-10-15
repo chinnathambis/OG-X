@@ -70,6 +70,14 @@ Entry engine unchanged; only the exit changes. Compared with "hold to the stop o
 - **Trend filter (only trade with a 3× longer channel's midline):** good 2026 test but poor 2024–25 train. Inconsistent, rejected.
 - Conclusion: the original hold-to-stop/flip exit is already close to the best. Breakeven after +3% is worth offering for the slower presets, and scale-out 10/10/10/20/20 for a smoother ride.
 
+## Timeframe study (tools/tf_study.py, 12 coins, train 2024-10→2025-12, test 2026)
+The same engine was run on 15m, 30m, 45m, 1h, 2h and 4h, with the channel length set in **days** (1–26, plus 30–60 on 1h/4h), buffer 0–1.5% and stop 3–10%.
+- **The timeframe barely matters.** For the same number of days, the results on 15m … 4h are nearly identical. The top train pick is the same on every timeframe (26 days, 1.5% buffer, 4% stop): test median +14% to +15%, 10/12 coins up, median DD 21%. Averaged over each timeframe's top-10 train picks, the test median is +8% to +11%. 4h was marginally best, which is within noise.
+- **What matters is how many days the channel covers.** The sweet spot is about 2–5 weeks (14–35 days). Below 10 days it whipsaws (negative train). Above 40 days there are too few trades and train turns negative.
+- Universal (500 × 45m ≈ 15.6 days) and Very slow (850 × 45m ≈ 26.6 days) sit inside that sweet spot.
+- So there is no need to tune a timeframe per preset. v1.5 defines presets in time and scales them to whatever timeframe is used. Practical gain: a **4h chart loads 2+ years in TradingView**, so the stats table covers ~30+ trades instead of 7–11 on 45m.
+- Summary file: `research/tf_study_summary.csv`.
+
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).
 - Crackōs = a clone. Best_Algos_Lab "Predictum" (2026) describes the same concept.
