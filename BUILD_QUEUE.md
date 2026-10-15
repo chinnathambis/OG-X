@@ -46,7 +46,8 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - The trade's shading starts at the stop line and runs to the chart edge on the profit side, instead of covering the full chart height. Long: from SL up to the top (teal). Short: from SL down to the bottom (pink). Nothing is shaded on the far side of the stop.
    - It runs from the entry candle to the exit candle, with the red SL line along its edge.
    - New input under "Highlight the background": style "SL to edge (Predictum X)" (default) or "Full height (Predictum)".
-   - Mock: `research/x_background_mock.png`.
+   - Works in both themes, following the existing "Light theme" switch. Light: teal #5e9fa3 / pink #f48fb1 at ~55 % transparency (X look). Dark: teal #26a69a / pink #f06292 at ~80 % transparency, so candles and TP lines stay readable on the dark background.
+   - Mocks: `research/x_background_mock.png` (light), `research/x_background_mock_dark.png` (dark).
    - Build note: draw it as a box from the SL to a far price. Check in TradingView that the far edge doesn't squash the price scale. If it does, cap the box at the highest high (Long) or lowest low (Short) of the visible trade plus a margin.
 
 ## P2: ideas
