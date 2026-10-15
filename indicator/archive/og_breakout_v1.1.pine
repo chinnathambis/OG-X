@@ -1,0 +1,303 @@
+//@version=6
+// OG Breakout v1.1 (fees in realised stats) — v1.0 — original clean-room build (15 Oct 2026).
+// Engine: Donchian channel breakout on an engine timeframe (default 45m), intrabar touch entry,
+// one position at a time, fixed % stop, fixed % take-profit ladder, same-side re-entry after a stop.
+// Fitted on Binance USDT-M futures: reproduces a 50-signal BTC history exactly (see predictum/RESEARCH.md).
+indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_lines_count = 500)
+
+// ─────────────────────────────── Inputs
+G_MAIN = "⚙ Engine"
+presetIn = input.string("BTC · 180 · 0.6%", "Preset", options = ["BTC · 180 · 0.6%", "BTC · 210 · 0%", "ETH · 450 · 0%", "Custom"], group = G_MAIN,
+     tooltip = "Channel length (engine bars) · entry buffer. BTC 180/0.6% and BTC 210/0% were fitted on BTCUSDT.P, ETH 450/0% on ETHUSDT. Custom uses the three settings below.")
+engTfIn  = input.timeframe("45", "Engine timeframe", group = G_MAIN, tooltip = "The channel is built on this timeframe. Use a chart timeframe equal to or lower than it (45m, 15m, 5m…).")
+nU       = input.int(180, "Custom · channel length", minval = 10, maxval = 3000, group = G_MAIN)
+bufU     = input.float(0.6, "Custom · entry buffer %", minval = 0.0, step = 0.1, group = G_MAIN, tooltip = "Long entry = channel high minus this %, short entry = channel low plus this %.")
+slU      = input.float(6.0, "Custom · stop-loss %", minval = 0.1, step = 0.5, group = G_MAIN)
+
+G_TGT = "🎯 Targets"
+ladderIn = input.string("Classic 0.3/1/2/3/10", "Take-profit ladder", options = ["Classic 0.3/1/2/3/10", "Wide 1/2/3/4/8/20", "Custom"], group = G_TGT)
+ladderU  = input.string("0.5, 1, 2, 4, 8", "Custom ladder % (comma separated)", group = G_TGT)
+winTpIn  = input.int(2, "Count a win at TP #", minval = 1, maxval = 10, group = G_TGT, tooltip = "The 'accuracy' row counts trades that reached this TP before the stop.")
+levIn    = input.float(10, "Leverage for % labels", minval = 1, group = G_TGT)
+dcaOn    = input.bool(false, "Show averaging (DCA) levels", group = G_TGT)
+dcaU     = input.string("7, 15, 25", "DCA distances %", group = G_TGT)
+
+G_VIS = "🎨 Chart"
+bgOn     = input.bool(true, "Highlight the background", group = G_VIS)
+nextOn   = input.bool(true, "Show next entry levels", group = G_VIS)
+tpslOn   = input.bool(true, "Show TP / SL lines", group = G_VIS)
+tpLblOn  = input.bool(false, "Show take-profit labels", group = G_VIS)
+entLblOn = input.bool(true, "Show entry price and time", group = G_VIS)
+peakOn   = input.bool(true, "Show peak profit labels", group = G_VIS)
+readyOn  = input.bool(true, "Show 'Get ready' labels", group = G_VIS)
+readyPct = input.float(0.5, "Get ready distance %", minval = 0.05, step = 0.05, group = G_VIS)
+colL     = input.color(#26a69a, "Long", inline = "c", group = G_VIS)
+colS     = input.color(#ef5350, "Short", inline = "c", group = G_VIS)
+colTP    = input.color(#8bc34a, "TP", inline = "c", group = G_VIS)
+colSL    = input.color(#ff1744, "SL", inline = "c", group = G_VIS)
+
+G_PNL = "📋 Statistics"
+statsOn  = input.bool(true, "Show the statistics block", group = G_PNL)
+statsN   = input.int(15, "Recent signals listed", minval = 3, maxval = 40, group = G_PNL)
+statsPos = input.string("Top R", "Position", options = ["Top R", "Bottom R", "Top L", "Bottom L"], group = G_PNL)
+fromIn   = input.time(timestamp("2020-01-01T00:00:00"), "Count trades from", group = G_PNL)
+feeIn    = input.float(0.08, "Fees per trade % (round trip)", minval = 0, step = 0.01, group = G_PNL, tooltip = "Deducted from every realised result. 0.08% ≈ Binance taker in + out.")
+
+// ─────────────────────────────── Preset resolution
+int N = switch presetIn
+    "BTC · 180 · 0.6%" => 180
+    "BTC · 210 · 0%"   => 210
+    "ETH · 450 · 0%"   => 450
+    => nU
+float BUF = switch presetIn
+    "BTC · 180 · 0.6%" => 0.006
+    "BTC · 210 · 0%"   => 0.0
+    "ETH · 450 · 0%"   => 0.0
+    => bufU / 100
+float SL = switch presetIn
+    "BTC · 180 · 0.6%" => 0.06
+    "BTC · 210 · 0%"   => 0.06
+    "ETH · 450 · 0%"   => 0.08
+    => slU / 100
+
+string ladderStr = switch ladderIn
+    "Classic 0.3/1/2/3/10" => "0.3,1,2,3,10"
+    "Wide 1/2/3/4/8/20"    => "1,2,3,4,8,20"
+    => ladderU
+
+parsePct(string s) =>
+    array<float> out = array.new<float>()
+    for p in str.split(s, ",")
+        float v = str.tonumber(str.replace_all(p, " ", ""))
+        if not na(v) and v > 0
+            out.push(v / 100)
+    out.sort(order.ascending)
+    out
+
+var array<float> TPS = parsePct(ladderStr)
+var array<float> DCA = parsePct(dcaU)
+int nTP = TPS.size()
+
+// ─────────────────────────────── Channel (no repaint: only closed engine bars are used)
+string engTf = engTfIn == "" ? timeframe.period : engTfIn
+bool   tfOK  = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(engTf)
+[hhE, llE] = request.security(syminfo.tickerid, engTf, [ta.highest(high, N)[1], ta.lowest(low, N)[1]], lookahead = barmerge.lookahead_on)
+float upL = hhE * (1 - BUF)
+float dnL = llE * (1 + BUF)
+
+// ─────────────────────────────── State
+var int   pos    = 0      // 1 long, -1 short, 0 flat after a stop
+var int   dir    = 0      // side of the last signal (background)
+var float ent    = na
+var int   entT   = na
+var float pkPx   = na
+var int   pkBar  = na
+var bool  slHit  = false
+var int   tpHit  = 0      // targets reached before the stop
+var label pkLbl  = na
+var array<line> curLines = array.new<line>()
+var bool  armL = true
+var bool  armS = true
+
+// statistics (closed trades)
+var array<int>   stT  = array.new<int>()
+var array<int>   stD  = array.new<int>()
+var array<float> stPk = array.new<float>()
+var array<int>   stTp = array.new<int>()
+var array<bool>  stSl = array.new<bool>()
+var array<float> stR  = array.new<float>()
+
+peakPct(int d, float e, float p) => d == 1 ? p / e - 1 : e / p - 1
+// label rule (matches the original's history): a stopped trade whose best move never reached TP1 shows as -SL × leverage
+shownPct(float pk, bool sl, int tp) =>
+    float tp1 = nTP > 0 ? TPS.get(0) : 0.0
+    sl and pk < tp1 ? -SL * levIn * 100 : pk * levIn * 100
+fmtPct(float v) => (v >= 0 ? "+" : "") + str.tostring(v, "0.00") + "%"
+fmtPx(float v) => str.tostring(v, format.mintick)
+cleanSym() => str.replace_all(syminfo.ticker, ".P", "")
+tpPrice(int d, float e, float p) => d == 1 ? e * (1 + p) : e / (1 + p)
+
+// ─────────────────────────────── 1) Stop-loss on the open position (checked before a new signal)
+bool slNow = false
+if pos == 1 and low <= ent * (1 - SL)
+    pos := 0
+    slNow := true
+else if pos == -1 and high >= ent * (1 + SL)
+    pos := 0
+    slNow := true
+
+// ─────────────────────────────── 2) Signals: intrabar touch of the channel level
+bool longSig  = tfOK and not na(upL) and high >= upL and pos != 1
+bool shortSig = tfOK and not na(dnL) and low <= dnL and pos != -1 and not longSig
+bool newSig   = longSig or shortSig
+
+if newSig
+    int   d  = longSig ? 1 : -1
+    float px = longSig ? math.max(open, upL) : math.min(open, dnL)
+    // close the previous trade (its peak excludes this bar)
+    if dir != 0 and not na(ent)
+        bool sl2 = slHit or slNow
+        float r = (sl2 ? -SL : (px / ent - 1) * dir) - feeIn / 100
+        if entT >= fromIn
+            stT.push(entT)
+            stD.push(dir)
+            stPk.push(peakPct(dir, ent, pkPx))
+            stTp.push(tpHit)
+            stSl.push(sl2)
+            stR.push(r)
+        for l in curLines
+            l.set_x2(bar_index)
+        if peakOn and not na(pkLbl)
+            pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), sl2, tpHit)))
+    curLines.clear()
+    // open the new trade
+    pos := d
+    dir := d
+    ent := px
+    entT := time
+    slHit := false
+    tpHit := 0
+    pkPx := d == 1 ? high : low
+    pkBar := bar_index
+    armL := true
+    armS := true
+    label.new(bar_index, d == 1 ? low : high, d == 1 ? "Long" : "Short", style = d == 1 ? label.style_label_up : label.style_label_down,
+         color = d == 1 ? colL : colS, textcolor = color.white, size = size.small)
+    if entLblOn
+        label.new(bar_index, px, (d == 1 ? "LONG" : "SHORT") + " was opened at " + fmtPx(px) + "\nTime: " + str.format_time(time, "dd/MM/yyyy HH:mm", "UTC") + " UTC",
+             style = label.style_label_right, color = color.new(d == 1 ? colL : colS, 15), textcolor = color.white, size = size.small)
+    if tpslOn
+        for p in TPS
+            curLines.push(line.new(bar_index, tpPrice(d, px, p), bar_index + 1, tpPrice(d, px, p), color = colTP, style = line.style_dotted, width = 1))
+        float slPx = d == 1 ? px * (1 - SL) : px * (1 + SL)
+        curLines.push(line.new(bar_index, slPx, bar_index + 1, slPx, color = colSL, width = 2))
+    if dcaOn
+        for q in DCA
+            float dp = d == 1 ? px * (1 - q) : px * (1 + q)
+            curLines.push(line.new(bar_index, dp, bar_index + 1, dp, color = color.new(color.yellow, 20), style = line.style_dotted))
+    if peakOn
+        pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = size.normal)
+    // first bar's progress
+    float fav0 = peakPct(d, px, pkPx)
+    while tpHit < nTP and fav0 >= TPS.get(tpHit)
+        tpHit += 1
+    // alert with full trade plan
+    string tpTxt = ""
+    for [i, p] in TPS
+        tpTxt += "\nTP " + str.tostring(i + 1) + ": " + fmtPx(tpPrice(d, px, p))
+    alert("#" + cleanSym() + " | Open " + (d == 1 ? "Long" : "Short") + "\nEntry: " + fmtPx(px) + "\nTimeframe: " + engTf + tpTxt +
+         "\nSL: " + fmtPx(d == 1 ? px * (1 - SL) : px * (1 + SL)), alert.freq_once_per_bar)
+else if dir != 0 and not na(ent)
+    // 3) track the open trade
+    if not slHit
+        float fav = peakPct(dir, ent, dir == 1 ? high : low)
+        while tpHit < nTP and fav >= TPS.get(tpHit)
+            tpHit += 1
+            if tpLblOn
+                label.new(bar_index, tpPrice(dir, ent, TPS.get(tpHit - 1)), "TP" + str.tostring(tpHit) + " ✓", style = label.style_label_left, color = color.new(colTP, 10), textcolor = color.white, size = size.tiny)
+            alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
+    if slNow
+        slHit := true
+        alert("#" + cleanSym() + " | Stop-loss hit", alert.freq_once_per_bar)
+    bool newPk = dir == 1 ? high > pkPx : low < pkPx
+    if newPk
+        pkPx := dir == 1 ? high : low
+        pkBar := bar_index
+    for l in curLines
+        l.set_x2(bar_index)
+
+// peak label follows the best price
+if peakOn and not na(pkLbl) and dir != 0 and not na(ent)
+    pkLbl.set_xy(pkBar, pkPx)
+    pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)))
+
+// ─────────────────────────────── 4) Get ready (price near the next entry level)
+if readyOn and tfOK and not newSig
+    if pos != 1 and not na(upL) and armL and high >= upL * (1 - readyPct / 100)
+        label.new(bar_index, high, "Get ready to Long", style = label.style_label_down, color = color.new(colL, 60), textcolor = color.white, size = size.tiny)
+        alert("#" + cleanSym() + " | Get ready to Long · entry " + fmtPx(upL), alert.freq_once_per_bar)
+        armL := false
+    if pos != -1 and not na(dnL) and armS and low <= dnL * (1 + readyPct / 100)
+        label.new(bar_index, low, "Get ready to Short", style = label.style_label_up, color = color.new(colS, 60), textcolor = color.white, size = size.tiny)
+        alert("#" + cleanSym() + " | Get ready to Short · entry " + fmtPx(dnL), alert.freq_once_per_bar)
+        armS := false
+if not na(upL) and close < upL * (1 - 2 * readyPct / 100)
+    armL := true
+if not na(dnL) and close > dnL * (1 + 2 * readyPct / 100)
+    armS := true
+
+// ─────────────────────────────── Plots & alerts
+bgcolor(bgOn and dir == 1 ? color.new(colL, 82) : bgOn and dir == -1 ? color.new(colS, 82) : na, title = "Trend background")
+plot(nextOn and pos != 1 ? upL : na, "Next long entry", color.new(colL, 0), 1, plot.style_linebr)
+plot(nextOn and pos != -1 ? dnL : na, "Next short entry", color.new(colS, 0), 1, plot.style_linebr)
+alertcondition(longSig, "Long", "OG Breakout: LONG on {{ticker}} at {{close}}")
+alertcondition(shortSig, "Short", "OG Breakout: SHORT on {{ticker}} at {{close}}")
+
+// ─────────────────────────────── 5) Statistics block
+var table tb = table.new(statsPos == "Top R" ? position.top_right : statsPos == "Bottom R" ? position.bottom_right : statsPos == "Top L" ? position.top_left : position.bottom_left,
+     4, 60, bgcolor = color.new(#0d3b1e, 5), border_width = 0)
+if barstate.islast
+    tb.clear(0, 0, 3, 59)
+    color tx = color.white
+    if not tfOK
+        tb.cell(0, 0, "⚠ Chart timeframe must be ≤ engine timeframe (" + engTf + ")", text_color = color.yellow, text_size = size.small)
+        tb.merge_cells(0, 0, 3, 0)
+    else if statsOn
+        int n = stT.size()
+        tb.cell(0, 0, "Statistics on " + cleanSym() + " · " + presetIn + " · " + engTf, text_color = tx, text_size = size.small)
+        tb.merge_cells(0, 0, 3, 0)
+        int row = 1
+        // open trade first
+        if dir != 0 and not na(ent)
+            float rOpen = (slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100
+            tb.cell(0, row, str.format_time(entT, "dd.MM.yy HH:mm", "UTC"), text_color = tx, text_size = size.small)
+            tb.cell(1, row, dir == 1 ? "Long" : "Short", text_color = dir == 1 ? colL : colS, text_size = size.small)
+            tb.cell(2, row, fmtPct(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit)), text_color = tx, text_size = size.small)
+            tb.cell(3, row, (slHit ? "stopped " : "open ") + fmtPct(rOpen * 100), text_color = color.silver, text_size = size.small)
+            row += 1
+        int shown = math.min(statsN, n)
+        for k = 0 to math.max(shown - 1, 0)
+            int i = n - 1 - k
+            if shown == 0 or i < 0
+                break
+            float sp = shownPct(stPk.get(i), stSl.get(i), stTp.get(i))
+            tb.cell(0, row, str.format_time(stT.get(i), "dd.MM.yy HH:mm", "UTC"), text_color = tx, text_size = size.small)
+            tb.cell(1, row, stD.get(i) == 1 ? "Long" : "Short", text_color = stD.get(i) == 1 ? colL : colS, text_size = size.small)
+            tb.cell(2, row, fmtPct(sp), text_color = sp < 0 ? colSL : tx, text_size = size.small)
+            tb.cell(3, row, "real " + fmtPct(stR.get(i) * 100), text_color = stR.get(i) >= 0 ? colTP : colSL, text_size = size.small)
+            row += 1
+        if n > 0 and nTP > 0
+            int wins = 0
+            int realW = 0
+            float sumPk = 0.0
+            float eq = 1.0
+            float peakEq = 1.0
+            float maxDD = 0.0
+            array<int> tpCnt = array.new<int>(nTP, 0)
+            for i = 0 to n - 1
+                if stTp.get(i) >= winTpIn
+                    wins += 1
+                if stR.get(i) > 0
+                    realW += 1
+                sumPk += stPk.get(i)
+                eq *= 1 + stR.get(i)
+                peakEq := math.max(peakEq, eq)
+                maxDD := math.max(maxDD, 1 - eq / peakEq)
+                for t = 0 to nTP - 1
+                    if stTp.get(i) > t
+                        tpCnt.set(t, tpCnt.get(t) + 1)
+            string tpRow = ""
+            for t = 0 to nTP - 1
+                tpRow += (t == 0 ? "" : "  ") + "TP" + str.tostring(t + 1) + " " + str.tostring(100.0 * tpCnt.get(t) / n, "0") + "%"
+            tb.cell(0, row, "Signals: " + str.tostring(n) + "  ·  avg peak " + fmtPct(sumPk / n * levIn * 100) + " (×" + str.tostring(levIn) + ")", text_color = tx, text_size = size.small)
+            tb.merge_cells(0, row, 3, row)
+            row += 1
+            tb.cell(0, row, "Accuracy (TP" + str.tostring(winTpIn) + " before stop): " + str.tostring(100.0 * wins / n, "0") + "%  (" + str.tostring(wins) + "/" + str.tostring(n) + ")", text_color = tx, text_size = size.small)
+            tb.merge_cells(0, row, 3, row)
+            row += 1
+            tb.cell(0, row, tpRow, text_color = tx, text_size = size.small)
+            tb.merge_cells(0, row, 3, row)
+            row += 1
+            tb.cell(0, row, "Realised (exit at stop or next signal, 1×, fees " + str.tostring(feeIn) + "%): wins " + str.tostring(100.0 * realW / n, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+                 text_color = color.yellow, text_size = size.small)
+            tb.merge_cells(0, row, 3, row)
