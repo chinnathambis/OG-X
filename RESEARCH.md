@@ -81,6 +81,15 @@ The same engine was run on 15m, 30m, 45m, 1h, 2h and 4h, with the channel length
 ## Decision (15 Oct 2026): main indicator = original Predictum
 The user chose to keep the main indicator as the faithful Predictum recreation (v2.0). The tuning work above (presets, exit study, timeframe study) is kept for reference, and v1.1–v1.5 stay in `indicator/archive/`.
 
+## Predictum X check (15 Oct 2026, 14 signals from Telegram screenshots, Bybit 45m data)
+Signals: ZEREBRO, GRIFFAIN, BANANA, GUN, GOAT, GPS, AVAAI, BERA, XCN, JELLYJELLY, DOOD, FARTCOIN, VANA, AVL (all longs, Oct 2025 – May 2026). List in `research/x/x_signals.csv`.
+- **Timing:** every ID time is a 45m candle open, and the posted price lies inside that candle. Signals fire intrabar, like v2.
+- **Same breakout engine, very likely.** 13 of 14 signal candles make a new high over the previous 4–38 days (typically 7–9 days ≈ 200–300 bars of 45m). **One setting, channel 200 bars + 0.8 % buffer, makes 12 of 14 signals a fresh breakout on exactly the signal candle** (no touch in the 8 candles before). By chance that would be expected for well under 1 in 14. The other two fit nearby per-coin settings (GUN 255 bars / 0.6 %, XCN 255–450 / 0.6 %). This is close to Predictum v2 BTC (180–210 bars, 0–0.6 %), so X looks like the same engine with per-coin presets.
+- **The "current price" in the post is not the fill level:** e.g. GRIFFAIN's price is below the candle open. It's the market price at posting time, so the exact entry level can't be read from the post.
+- **TPs and DCA:** TP = price × (1 + 1 / 2 / 3 / 4 / 8 / 20 %) plus ~0.05 %; DCA = price × (1 − 7 / 15 / 25 %).
+- **Probability / PNL:** look like per-coin history (TP hit rate; total PNL if always closed at that TP, which can be negative).
+- **Still unknown:** the stop rule, the per-coin N/buffer for each coin, and shorts (no short signals yet). Next: the full Telegram export (signals + "TP ✅ / stop" follow-ups), then fit per coin.
+
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).
 - Crackōs = a clone. Best_Algos_Lab "Predictum" (2026) describes the same concept.
