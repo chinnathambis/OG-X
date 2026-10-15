@@ -44,6 +44,22 @@ Grid: N 60–1000, buffer 0–1.5%, stop 3–10% (900 combos × 12 coins). Reali
 - Files: `research/tune_grid_2024_2026.csv` (every combo), `research/universal_500_per_coin.csv`, `tools/tune_presets.py`, `tools/grid_all.py`, `tools/fetch_presets_data.py`.
 - OG Breakout v1.2: "Universal · 500 · 0.6% · 3%" is the default preset. The stats header shows "✓ validated" or "⚠ not validated on this coin". Realised stats now deduct fees (input, default 0.08%).
 
+### Preset list (OG Breakout v1.3)
+Test = Jan–Oct 2026 (unseen). Median across 12 coins. "Both" = coins profitable in train and test (the coins the header marks ✓).
+| Preset | Test median | Coins + in test | Median max DD | Trades/yr/coin | Both |
+|---|---|---|---|---|---|
+| Universal · 500 · 0.6% · 3% | +42% | 10/12 | 26% | ~27 | ADA AVAX DOGE ETH LINK SOL SUI XRP |
+| Fast · 60 · 0% · 10% | +36% | 9/12 | 32% | ~124 | ADA DOGE ETH SUI TAO XRP |
+| Active · 240 · 0% · 4% | +13% | 10/12 | 31% | ~39 | DOGE ETH HYPE SOL XRP |
+| Medium · 340 · 0% · 3% | +22% | 9/12 | 32% | ~37 | AVAX DOGE ETH SUI XRP |
+| Swing · 450 · 1% · 3% | +32% | 10/12 | 29% | ~32 | AVAX DOGE ETH LINK SUI XRP |
+| Swing · 550 · 0% · 4% | +23% | 9/12 | 23% | ~22 | AVAX DOGE ETH LINK SUI XRP |
+| Slow · 600 · 0.6% · 3% | +14% | 9/12 | 26% | ~27 | AVAX DOGE ETH LINK SUI XRP |
+| Slow · 800 · 1% · 3% | +25% | 10/12 | 20% | ~22 | AVAX DOGE ETH LINK SUI XRP |
+| Very slow · 850 · 1.5% · 4% | +22% | 11/12 | 21% | ~16 | AVAX BTC DOGE ETH LINK SOL SUI XRP |
+Coin-tuned (best on that coin's train data, so the most overfit-prone). Train → test: BTC 700/1%/3% +7% → +34%; ETH 700/0.6%/3% +252% → +29%; SOL 220/1%/8% +119% → +18%; DOGE 640/0%/4% +446% → +26%; SUI 700/1%/4% +576% → +44%.
+Correction: in v1.2 the Universal "validated" list included BTC and BNB. Both were profitable in the 2026 test but lost in 2024–2025 training, so they are not marked ✓ from v1.3.
+
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).
 - Crackōs = a clone. Best_Algos_Lab "Predictum" (2026) describes the same concept.
