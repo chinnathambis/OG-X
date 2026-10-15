@@ -42,6 +42,12 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - Did not qualify: BTC, BNB, ADA, LINK, AVAX, HYPE, TAO, EGLD.
    - Pending: the top-50 scan (`tools/fetch_top_coins.py`), then add any further qualifiers.
 
+4. **Predictum X–style trade background (agreed 15 Oct 2026; VANA and GPS X screenshots).**
+   - The trade's shading starts at the stop line and runs to the chart edge on the profit side, instead of covering the full chart height. Long: from SL up to the top (teal). Short: from SL down to the bottom (pink). Nothing is shaded on the far side of the stop.
+   - It runs from the entry candle to the exit candle, with the red SL line along its edge.
+   - New input under "Highlight the background": style "SL to edge (Predictum X)" (default) or "Full height (Predictum)".
+   - Build note: draw it as a box from the SL to a far price. Check in TradingView that the far edge doesn't squash the price scale. If it does, cap the box at the highest high (Long) or lowest low (Short) of the visible trade plus a margin.
+
 ## P2: ideas
 - **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
   - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
