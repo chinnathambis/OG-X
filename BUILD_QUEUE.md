@@ -21,6 +21,7 @@ _(none open)_
    - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
 
 ## P2: ideas
+- **Predictum X research (next step after the 2021–22 recreation).** Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
 - **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
 - **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
 - **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
