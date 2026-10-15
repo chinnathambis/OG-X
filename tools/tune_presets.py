@@ -32,7 +32,7 @@ def run(b, N, buf, sl):
             trades.append((cur, -sl - FEE)); pos = 0; cur = None
         if H[i] >= up[i] and pos != 1:
             px = max(O[i], up[i])
-            if pos == -1: trades.append((cur, ent / px - 1 - FEE))
+            if pos == -1: trades.append((cur, 1 - px / ent - FEE))
             pos, ent, cur = 1, px, i
         elif L[i] <= dn[i] and pos != -1:
             px = min(O[i], dn[i])

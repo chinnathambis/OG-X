@@ -44,21 +44,31 @@ Grid: N 60–1000, buffer 0–1.5%, stop 3–10% (900 combos × 12 coins). Reali
 - Files: `research/tune_grid_2024_2026.csv` (every combo), `research/universal_500_per_coin.csv`, `tools/tune_presets.py`, `tools/grid_all.py`, `tools/fetch_presets_data.py`.
 - OG Breakout v1.2: "Universal · 500 · 0.6% · 3%" is the default preset. The stats header shows "✓ validated" or "⚠ not validated on this coin". Realised stats now deduct fees (input, default 0.08%).
 
-### Preset list (OG Breakout v1.3)
+### Preset list (OG Breakout v1.4, corrected short-trade maths)
+Bug fixed in v1.4: the tuner scored a short closed on a flip as entry/exit − 1 instead of 1 − exit/entry, which overstated winning shorts. The indicator itself was always right. Numbers below are after the fix.
 Test = Jan–Oct 2026 (unseen). Median across 12 coins. "Both" = coins profitable in train and test (the coins the header marks ✓).
 | Preset | Test median | Coins + in test | Median max DD | Trades/yr/coin | Both |
 |---|---|---|---|---|---|
-| Universal · 500 · 0.6% · 3% | +42% | 10/12 | 26% | ~27 | ADA AVAX DOGE ETH LINK SOL SUI XRP |
-| Fast · 60 · 0% · 10% | +36% | 9/12 | 32% | ~124 | ADA DOGE ETH SUI TAO XRP |
-| Active · 240 · 0% · 4% | +13% | 10/12 | 31% | ~39 | DOGE ETH HYPE SOL XRP |
-| Medium · 340 · 0% · 3% | +22% | 9/12 | 32% | ~37 | AVAX DOGE ETH SUI XRP |
-| Swing · 450 · 1% · 3% | +32% | 10/12 | 29% | ~32 | AVAX DOGE ETH LINK SUI XRP |
-| Swing · 550 · 0% · 4% | +23% | 9/12 | 23% | ~22 | AVAX DOGE ETH LINK SUI XRP |
-| Slow · 600 · 0.6% · 3% | +14% | 9/12 | 26% | ~27 | AVAX DOGE ETH LINK SUI XRP |
-| Slow · 800 · 1% · 3% | +25% | 10/12 | 20% | ~22 | AVAX DOGE ETH LINK SUI XRP |
-| Very slow · 850 · 1.5% · 4% | +22% | 11/12 | 21% | ~16 | AVAX BTC DOGE ETH LINK SOL SUI XRP |
-Coin-tuned (best on that coin's train data, so the most overfit-prone). Train → test: BTC 700/1%/3% +7% → +34%; ETH 700/0.6%/3% +252% → +29%; SOL 220/1%/8% +119% → +18%; DOGE 640/0%/4% +446% → +26%; SUI 700/1%/4% +576% → +44%.
-Correction: in v1.2 the Universal "validated" list included BTC and BNB. Both were profitable in the 2026 test but lost in 2024–2025 training, so they are not marked ✓ from v1.3.
+| Universal · 500 · 0.6% · 3% | +27% | 9/12 | 26% | ~27 | AVAX DOGE ETH LINK SUI XRP |
+| Fast · 60 · 0% · 10% | +23% | 9/12 | 33% | ~124 | ADA DOGE ETH SUI TAO XRP |
+| Active · 240 · 0% · 4% | +7% | 7/12 | 32% | ~39 | ETH HYPE SOL XRP |
+| Medium · 340 · 0% · 3% | +10% | 9/12 | 33% | ~37 | AVAX DOGE ETH XRP |
+| Swing · 450 · 1% · 3% | +21% | 9/12 | 30% | ~32 | AVAX DOGE ETH SUI XRP |
+| Swing · 550 · 0% · 4% | +9% | 8/12 | 23% | ~22 | AVAX DOGE ETH SUI XRP |
+| Slow · 600 · 0.6% · 3% | +3% | 7/12 | 26% | ~27 | DOGE ETH SUI XRP |
+| Slow · 800 · 1% · 3% | +15% | 10/12 | 20% | ~22 | AVAX DOGE ETH LINK SUI XRP |
+| Very slow · 850 · 1.5% · 4% | +13% | 11/12 | 21% | ~16 | AVAX BTC DOGE ETH LINK SOL SUI XRP |
+Coin-tuned, train → test: BTC 700/1%/3% +6% → +25%; ETH 700/0.6%/3% +198% → +18%; DOGE 640/0%/4% +277% → +13%; SUI 700/1%/4% +338% → +26%. SOL 220/1%/8% (+91% → −3%) was removed.
+
+## Exit study (tools/exit_study.py, 12 coins, same train/test split)
+Entry engine unchanged; only the exit changes. Compared with "hold to the stop or the opposite signal":
+- **Scale-out 20% at each of 1/2/3/4/8%** first looked best (12/12 coins up), but most of that came from re-entering on the same bar the last target filled, at a price already passed. With same-bar re-entry blocked it is worse than holding (Universal test +5% vs +27%). Rejected.
+- **Scale-out 10/10/10/20/20 (40% rides to the stop or flip):** roughly halves the drawdown (Universal train 37% → 18%, test 26% → 13%) but also halves the return (test +11% vs +27%). A smoother, lower-return option.
+- **Breakeven after +3%:** helps the slower presets (Slow 800: better risk-adjusted on 9/12 coins in both periods, test DD 20% → 13%; Swing 450: 7–8/12). Neutral for Universal, worse for Fast.
+- **Breakeven after +1% or +2%:** cuts winners too early. Not better.
+- **Trailing stops (5/8/12%):** mixed. 8% is about neutral; 5% hurts.
+- **Trend filter (only trade with a 3× longer channel's midline):** good 2026 test but poor 2024–25 train. Inconsistent, rejected.
+- Conclusion: the original hold-to-stop/flip exit is already close to the best. Breakeven after +3% is worth offering for the slower presets, and scale-out 10/10/10/20/20 for a smoother ride.
 
 ## Product lineage
 - Predictūm v2.1.5 → v2.4.2 (2021–2023), PRO New Era v1.1–1.5 (2023–2024, 50–63 presets, DCA+SL / No DCA+SL), Predictūm X (2025–26, Bybit 45m, TP1–6 + probability + strategy score).

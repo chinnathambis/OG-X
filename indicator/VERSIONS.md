@@ -10,4 +10,6 @@ The current build is always `indicator/og_breakout.pine`. Every released version
 
 | v1.3 | 15 Oct 2026 | `archive/og_breakout_v1.3.pine` | 17 presets: 9 Universal-family (Fast 60 → Very slow 850), 5 coin-tuned (BTC, ETH, SOL, DOGE, SUI), 3 original Predictum. Old preset names renamed ("Predictum BTC · 180 · 0.6% · 6%" …), so TradingView resets the preset once. The header check is now per preset: "✓ profitable here in train + test" or "⚠ not validated on this coin". max_bars_back 1000. |
 
+| v1.4 | 15 Oct 2026 | `archive/og_breakout_v1.4.pine` | Tuning bug fixed (short trades closed on a flip were scored as entry/exit − 1 instead of 1 − exit/entry, overstating winning shorts). Presets re-checked: "✓" coin lists updated, "SOL tuned" removed (its 2026 test turned negative). 16 presets. Engine and chart unchanged. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

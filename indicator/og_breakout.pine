@@ -1,5 +1,5 @@
 //@version=6
-// OG Breakout v1.3 (17 presets) — v1.0 — original clean-room build (15 Oct 2026).
+// OG Breakout v1.4 (16 presets, corrected short-trade maths in tuning) — v1.0 — original clean-room build (15 Oct 2026).
 // Engine: Donchian channel breakout on an engine timeframe (default 45m), intrabar touch entry,
 // one position at a time, fixed % stop, fixed % take-profit ladder, same-side re-entry after a stop.
 // Fitted on Binance USDT-M futures: reproduces a 50-signal BTC history exactly (see predictum/RESEARCH.md).
@@ -7,7 +7,7 @@ indicator("OG Breakout", "OG BRK", overlay = true, max_labels_count = 500, max_l
 
 // ─────────────────────────────── Inputs
 G_MAIN = "⚙ Engine"
-presetIn = input.string("Universal · 500 · 0.6% · 3%", "Preset", options = ["Universal · 500 · 0.6% · 3%", "Fast · 60 · 0% · 10%", "Active · 240 · 0% · 4%", "Medium · 340 · 0% · 3%", "Swing · 450 · 1% · 3%", "Swing · 550 · 0% · 4%", "Slow · 600 · 0.6% · 3%", "Slow · 800 · 1% · 3%", "Very slow · 850 · 1.5% · 4%", "BTC tuned · 700 · 1% · 3%", "ETH tuned · 700 · 0.6% · 3%", "SOL tuned · 220 · 1% · 8%", "DOGE tuned · 640 · 0% · 4%", "SUI tuned · 700 · 1% · 4%", "Predictum BTC · 180 · 0.6% · 6%", "Predictum BTC · 210 · 0% · 6%", "Predictum ETH · 450 · 0% · 8%", "Custom"], group = G_MAIN,
+presetIn = input.string("Universal · 500 · 0.6% · 3%", "Preset", options = ["Universal · 500 · 0.6% · 3%", "Fast · 60 · 0% · 10%", "Active · 240 · 0% · 4%", "Medium · 340 · 0% · 3%", "Swing · 450 · 1% · 3%", "Swing · 550 · 0% · 4%", "Slow · 600 · 0.6% · 3%", "Slow · 800 · 1% · 3%", "Very slow · 850 · 1.5% · 4%", "BTC tuned · 700 · 1% · 3%", "ETH tuned · 700 · 0.6% · 3%", "DOGE tuned · 640 · 0% · 4%", "SUI tuned · 700 · 1% · 4%", "Predictum BTC · 180 · 0.6% · 6%", "Predictum BTC · 210 · 0% · 6%", "Predictum ETH · 450 · 0% · 8%", "Custom"], group = G_MAIN,
      tooltip = "Name · channel length (engine bars) · entry buffer · stop. Universal-family presets were tuned on 12 Binance futures coins (train Oct 2024 – Dec 2025, test Jan – Oct 2026); slower = fewer, longer trades. 'Coin tuned' presets fit one coin only. Predictum presets are the original settings (fitted on 2020–2023). The stats header shows whether the chart coin was profitable with the preset in both periods. Custom uses the three settings below.")
 engTfIn  = input.timeframe("45", "Engine timeframe", group = G_MAIN, tooltip = "The channel is built on this timeframe. Use a chart timeframe equal to or lower than it (45m, 15m, 5m…).")
 nU       = input.int(180, "Custom · channel length", minval = 10, maxval = 3000, group = G_MAIN)
@@ -56,7 +56,6 @@ int N = switch presetIn
     "Very slow · 850 · 1.5% · 4%" => 850
     "BTC tuned · 700 · 1% · 3%" => 700
     "ETH tuned · 700 · 0.6% · 3%" => 700
-    "SOL tuned · 220 · 1% · 8%" => 220
     "DOGE tuned · 640 · 0% · 4%" => 640
     "SUI tuned · 700 · 1% · 4%" => 700
     "Predictum BTC · 180 · 0.6% · 6%" => 180
@@ -75,7 +74,6 @@ float BUF = switch presetIn
     "Very slow · 850 · 1.5% · 4%" => 0.015
     "BTC tuned · 700 · 1% · 3%" => 0.01
     "ETH tuned · 700 · 0.6% · 3%" => 0.006
-    "SOL tuned · 220 · 1% · 8%" => 0.01
     "DOGE tuned · 640 · 0% · 4%" => 0.0
     "SUI tuned · 700 · 1% · 4%" => 0.01
     "Predictum BTC · 180 · 0.6% · 6%" => 0.006
@@ -94,7 +92,6 @@ float SL = switch presetIn
     "Very slow · 850 · 1.5% · 4%" => 0.04
     "BTC tuned · 700 · 1% · 3%" => 0.03
     "ETH tuned · 700 · 0.6% · 3%" => 0.03
-    "SOL tuned · 220 · 1% · 8%" => 0.08
     "DOGE tuned · 640 · 0% · 4%" => 0.04
     "SUI tuned · 700 · 1% · 4%" => 0.04
     "Predictum BTC · 180 · 0.6% · 6%" => 0.06
@@ -102,18 +99,17 @@ float SL = switch presetIn
     "Predictum ETH · 450 · 0% · 8%" => 0.08
     => slU / 100
 string VALID = switch presetIn
-    "Universal · 500 · 0.6% · 3%" => "ADA,AVAX,DOGE,ETH,LINK,SOL,SUI,XRP"
+    "Universal · 500 · 0.6% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
     "Fast · 60 · 0% · 10%" => "ADA,DOGE,ETH,SUI,TAO,XRP"
-    "Active · 240 · 0% · 4%" => "DOGE,ETH,HYPE,SOL,XRP"
-    "Medium · 340 · 0% · 3%" => "AVAX,DOGE,ETH,SUI,XRP"
-    "Swing · 450 · 1% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
-    "Swing · 550 · 0% · 4%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
-    "Slow · 600 · 0.6% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
+    "Active · 240 · 0% · 4%" => "ETH,HYPE,SOL,XRP"
+    "Medium · 340 · 0% · 3%" => "AVAX,DOGE,ETH,XRP"
+    "Swing · 450 · 1% · 3%" => "AVAX,DOGE,ETH,SUI,XRP"
+    "Swing · 550 · 0% · 4%" => "AVAX,DOGE,ETH,SUI,XRP"
+    "Slow · 600 · 0.6% · 3%" => "DOGE,ETH,SUI,XRP"
     "Slow · 800 · 1% · 3%" => "AVAX,DOGE,ETH,LINK,SUI,XRP"
     "Very slow · 850 · 1.5% · 4%" => "AVAX,BTC,DOGE,ETH,LINK,SOL,SUI,XRP"
     "BTC tuned · 700 · 1% · 3%" => "BTC"
     "ETH tuned · 700 · 0.6% · 3%" => "ETH"
-    "SOL tuned · 220 · 1% · 8%" => "SOL"
     "DOGE tuned · 640 · 0% · 4%" => "DOGE"
     "SUI tuned · 700 · 1% · 4%" => "SUI"
     "Predictum BTC · 180 · 0.6% · 6%" => ""
