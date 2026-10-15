@@ -102,3 +102,9 @@ Signals: ZEREBRO, GRIFFAIN, BANANA, GUN, GOAT, GPS, AVAAI, BERA, XCN, JELLYJELLY
 ## Data and code
 - `tools/fetch_data.py` downloads Binance futures 15m CSVs into `data/` (git-ignored).
 - `tools/fit_engine.py` holds the loader, the 45m resampler, the simulator and the raw ground-truth signal lists (BTC 50, ETH 30). Running it prints "BTC v.5 matched 50 / 50".
+
+## Top-coin scan: original strategies on 40 coins (15 Oct 2026)
+Binance futures 15m → 45m, Oct 2024 – Oct 2026, 1×, fees 0.08 %, exit at the stop or the next signal. Qualifies = profitable in both 2024–25 and 2026. Full table: `research/orig_strategies_top_coins.csv`.
+- 14 of 40 coins qualify on at least one strategy. The best per coin: ZEC (BTC v.5) +1244 %, DOGE (ETH) +328 %, ARB (v2.2) +180 % ⚠, SUI (ETH) +171 % ⚠, QNT (ETH) +143 %, ETH (ETH) +141 %, UNI (v2.2) +117 % ⚠, 1000PEPE (v.5) +110 %, XRP (ETH) +101 %, AAVE (ETH) +100 %, SOL (v.5) +49 %, PAXG (v2.2) +36 % (DD 11 %).
+- AKE (+1385 %) and PUMP are too new to trust (listed 2025).
+- The ETH strategy (450 bars) carries most of the winners; the slow channel suits trending alts. BTC itself still doesn't qualify on any of the three.
