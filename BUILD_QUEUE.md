@@ -22,7 +22,11 @@ Current release: **v2.2** (the TP-labels-on-the-entry-candle fix shipped before 
    - Redrawn on the last bar only, so it never piles up on history. Shown when "Show Helper" is on.
 
 ## P1: agreed features
-1. **Next-signal line on the current trade.** Under "Show SL/TP of the current position", draw the next opposite signal as a dashed trailing line next to the fixed stop, and label whichever is closer "effective stop". Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/stop_mock.png`.
+1. **Next-signal exit stub on the current trade (Mock B, agreed 15 Oct 2026).** Under "Show SL/TP of the current position":
+   - No trailing line and no history. On the last bar only, draw the next opposite signal as a short dashed stub starting ~2 bars right of the live candle, with a "+" at the level (red for a Short flip, green for a Long flip).
+   - The closer exit (fixed stop or next signal) is bold and tagged "◀ EXIT" with the % result if it hits, e.g. "◀ EXIT Next signal (Short) 2,757 +7.3%". The other one is dimmed and still shows its %.
+   - The fixed stop stays the normal red position line. It turns thin and dim once the next signal is closer.
+   - Display only: the stop logic already ends a trade at whichever comes first. Mock: `research/effective_stop_mock_B.png` (trailing-line version rejected).
 2. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
    - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
    - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
