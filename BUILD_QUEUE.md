@@ -30,6 +30,18 @@ Current release: **OG X v.2.4.2 + Alerts** (16 Oct 2026). Next build: P1.
    - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
 
 ## P2: ideas
+- **Northline bot alerts, same as OG Shot (parked 16 Oct 2026).** Send OG Shot's JSON so the Northline bot / mini app can trade OG X signals.
+  - New trade: `{"event":"LONG/SHORT","symbol","exchange","tf":"45m","strategy":"OG X <COIN>","entry","zone":[lo,hi],"tp":[TP1–TP4],"sl","accuracy":{all,short,long,last5,last10,last20},"time"}`.
+  - Follow-ups: `TARGET` (targets hit) and `STOP`.
+  - Plus a "Message format" setting (Telegram / JSON / Both) like OG Shot.
+  - Draft defaults:
+    - TP1–TP4 (+0.3 / 1 / 2 / 3 %) go to the bot; TP5 stays on the chart only.
+    - Entry zone = entry → TP1.
+    - The alert fires on the touch (intrabar), not at bar close.
+  - Open points:
+    - TP1 at +0.3 % with the bot's 50 % first close.
+    - Check `CONTRACT.md` in the bot repo for allowed strategy names / fields.
+    - One alert per chart (12) until the hub exists.
 - **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
   - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
   - **Data point 2 (dark screenshot, 15 Oct 2026):** API3USDT, Bybit, 45m, Long on Sat 16 Aug 2025 11:15 (chart time zone unknown), peak profit +1193.06 %. The indicator's legend reads "Crackōs v.1.0.1 + Alerts", which is probably the TradingView name of Predictum X.
