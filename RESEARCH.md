@@ -114,3 +114,11 @@ Binance futures 15m → 45m, Oct 2024 – Oct 2026, 1×, fees 0.08 %, exit at th
 - Its warning box checks four things: timeframe 30 min, a supported ticker, BINANCE exchange, and a ticker ending in ".P".
 - It shows a long list of supported tickers for the "No DCA + SL" type. Visible part: 1000SHIB, 1INCH, ALICE, ALPHA, API3, ARPA, ATA, ATOM, AXS, BAKE, BAND, BEL, CHZ, COMP, COTI, CRV, DASH, DENT, DOT, DUSK, DYDX, ENJ, FIL, FLOW, GRT … So it runs per-coin settings for many alts.
 - The name suggests parameters "20 20 TP 5". These are unknown; possibly SL 20 % / 20 bars / 5 TPs. Not researched.
+
+## Per-coin tuning with a 2026 test (16 Oct 2026)
+- **Setup:** the same engine and TP ladder. Each coin's bars (60–700), buffer (0–1 %) and stop (3–10 %) are picked on **Oct 2024 – Dec 2025 only**, by net ÷ drawdown with a neighbour-robustness check. The pick is then tested on **2026**, which tuning never saw. Binance futures 45m, 1×, fees 0.08 %. Full table: `research/per_coin_tune_2026_test.csv`.
+- **Pass rule:** profitable in training; 2026 profit with ≥ 8 trades; 2026 PF ≥ 1.2; 2026 drawdown ≤ 50 %; history from before Apr 2025.
+- **14 of 40 pass:** ZEC, ZEREBRO, ARB, STRK, WLD, UNI, TAO, SOL, EGLD, AAVE, SUI, BTC, ETH, DOGE.
+  - New coins that were not presets: STRK, WLD, TAO and EGLD (few trades). ZEREBRO and BTC only scraped through training (+4 %, +6 %), so treat them as luck.
+- **Tuning is not always better.** Tuned XRP, 1000PEPE, QNT and PAXG failed in 2026, while their original-strategy presets passed. The original strategies are the more robust choice where they already work.
+- **The tuned settings fix the weak ⚠ presets:** SUI (2026 +1 % → +26 %), ARB (2024–25 +1 % → +574 %) and UNI (DD 66 % → 31–38 %).
