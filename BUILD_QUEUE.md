@@ -17,13 +17,36 @@ Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
      - exchange is BINANCE (or BYBIT); the ❌ line names the actual exchange
      - ticker ends with ".P" (perpetual futures)
      - plus the note "Signals still run with Custom settings; results may differ from the presets."
-   - **Blue "SUPPORTED TICKERS (presets)" list** under the box: BTCUSDT.P (v2.2 and v.5), ETH, ZEC, DOGE, QNT, 1000PEPE, XRP, AAVE, SOL, PAXG, SUI ⚠, UNI ⚠, ARB ⚠, with the footer "Binance futures · 45 min · other coins: Custom".
+   - **Blue "SUPPORTED TICKERS (presets)" list** under the box: BTCUSDT.P (v2.2 and v.5), ETH, ZEC, DOGE, QNT, 1000PEPE, XRP, AAVE, SOL, PAXG, SUI, UNI, ARB, STRK, WLD, TAO, EGLD ⚠, BCH ⚠ (see items 2–3), with the footer "Binance futures · 45 min · other coins: Custom".
    - **Correct chart but no preset** (e.g. LINKUSDT.P with Auto): no red box. A blue info line "ℹ No preset for X — Custom settings are in use (N bars · buf % · stop %)" with ✅ timeframe · ✅ exchange · ✅ ".P", and the supported list under it.
    - Signals keep running in both cases (unlike Predictum, which blocks).
    - New setting **"Hide the chart check"** turns both boxes off.
 
 2. **Add BCHUSDT.P preset** (requested 16 Oct 2026). Menu entry "BCHUSDT.P - Binance Futures | 45 min timeframe", picked by Auto on BCH, using the **BTC v.5 strategy** (210 / 0 % / 6 %). Mark it **⚠** in the tooltip and the stats ("⚠ BCH preset: lost money in 2024–25") and add it to the chart-check ticker list with ⚠.
    - Backtest (Binance futures 45m, 1×, fees): it lost money overall on all three strategies. BTC v.5 −50 % total (2024–25 −74 %, 2026 +93 %, DD 78 %, PF 0.89). ETH −41 % (−57 %, +37 %, DD 70 %). v2.2 −61 % (−74 %, +47 %, DD 88 %). v.5 was picked for the strongest 2026.
+
+3. **More presets from per-coin tuning** (approved 16 Oct 2026; `research/per_coin_tune_2026_test.csv`, RESEARCH.md "Per-coin tuning with a 2026 test").
+   - **Approach.** Same engine and TP ladder. Each coin has its own bars / buffer / stop, tuned on Oct 2024 – Dec 2025 and checked on 2026 (out of sample). Implement as a per-coin settings row (like the BTC/ETH strategies, but with each coin's own numbers).
+   - **New presets** (menu name "<SYMBOL>.P - Binance Futures | 45 min timeframe", picked by Auto):
+
+     | Coin | Bars | Buffer | Stop | 2024–25 | 2026 | 2026 DD | Mark |
+     |---|---|---|---|---|---|---|---|
+     | STRKUSDT.P | 170 | 1 % | 8 % | +84 % | +100 % | 33 % | |
+     | WLDUSDT.P | 60 | 0 % | 4 % | +139 % | +82 % | 49 % | |
+     | TAOUSDT.P | 60 | 0 % | 10 % | +93 % | +74 % | 32 % | |
+     | EGLDUSDT.P | 680 | 1 % | 10 % | +121 % | +45 % | 12 % | ⚠ few trades (10 in 2026) |
+
+   - **Switch three ⚠ presets to their tuned settings and remove the ⚠:**
+
+     | Coin | Bars | Buffer | Stop | 2024–25 | 2026 | 2026 DD |
+     |---|---|---|---|---|---|---|
+     | SUIUSDT.P | 700 | 1 % | 4 % | +338 % | +26 % | 22 % |
+     | ARBUSDT.P | 60 | 0.6 % | 10 % | +574 % | +104 % | 35 % |
+     | UNIUSDT.P | 70 | 0.6 % | 8 % | +254 % | +79 % | 31 % |
+
+   - **Keep on the original strategies:** ZEC, DOGE, QNT, ETH, 1000PEPE, XRP, AAVE, SOL, PAXG and the BTC entries. Tuned XRP, PEPE, QNT and PAXG failed 2026; the originals passed.
+   - Not added: ZEREBRO and BTC tuned (barely profitable in training, +4 % / +6 %).
+   - Update the strategy tooltip and the chart-check "SUPPORTED TICKERS" list: 17 presets plus BCH ⚠.
 
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
