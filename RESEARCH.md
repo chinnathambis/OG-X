@@ -122,3 +122,12 @@ Binance futures 15m → 45m, Oct 2024 – Oct 2026, 1×, fees 0.08 %, exit at th
   - New coins that were not presets: STRK, WLD, TAO and EGLD (few trades). ZEREBRO and BTC only scraped through training (+4 %, +6 %), so treat them as luck.
 - **Tuning is not always better.** Tuned XRP, 1000PEPE, QNT and PAXG failed in 2026, while their original-strategy presets passed. The original strategies are the more robust choice where they already work.
 - **The tuned settings fix the weak ⚠ presets:** SUI (2026 +1 % → +26 %), ARB (2024–25 +1 % → +574 %) and UNI (DD 66 % → 31–38 %).
+
+## Preset scan round 2: 125 more coins (16 Oct 2026)
+- **Coins:** the top 150 by volume minus round 1, plus Predictum's "New Era" alts; 125 downloaded, 90 with data from before Apr 2025. Data: `data/*.csv.gz`. Results: `research/orig_strategies_round2.csv`, `research/per_coin_tune_round2.csv`.
+- **Original strategies, quality rule** (both periods ≥ +10 %, DD ≤ 60 %, PF ≥ 1.3): PENGU, MINA, DASH, 1000BONK, RAYSOL, AERO, SEI, BOME, BLUR, POL, KMNO, GRT, ENJ, GALA, RENDER.
+  - VVV is +1001 % but DD 64 % (⚠).
+  - Rejected: EPIC (2024–25 +2 %), ATOM (+4 %), DOT (2026 +8 %), LSK (DD 77 %), CHZ (DD 64 %).
+- **Per-coin tuning** (tuned on 2024–25, 2026 test, same pass rule as round 1, training ≥ +20 %): 22 pass.
+  - New coins only via tuning: S (+333 % in 2026, DD 21 %), XLM, KAIA, AR (8 test trades), TRX (10 test trades).
+  - SAND: tuned 660 / 1 % / 8 % (2026 +23 %, DD 22 %) instead of the original v2.2 (DD 67 %).
