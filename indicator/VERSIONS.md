@@ -30,4 +30,6 @@ The current build is always `indicator/og_x.pine` (named `og_breakout.pine` up t
 
 | v.2.4.3 | 16 Oct 2026 | `archive/og_x_v2.4.3.pine` | Fix: the 40 pt "+" sat above its price, out of line with the blue tag. It is now a transparent centred label, so the "+" sits exactly on the next-signal price, level with the tag's pointer. |
 
+| v.2.4.4 | 16 Oct 2026 | `archive/og_x_v2.4.4.pine` | Chart check: red WARNING box with ✅/❌ for timeframe, supported ticker, exchange (BINANCE/BYBIT) and ".P", or a blue "No preset" note on a correct chart, plus the SUPPORTED TICKERS list; "Hide the chart check" setting. Presets go from 12 coins to 39 coins plus the two BTC entries: BCH ⚠; tuned STRK, WLD, TAO, EGLD; re-tuned SUI, ARB, UNI; 21 round-2 coins. Menu: BTC first, then A–Z. Confidence rating (🏆 TOP PICK ★★★ / ✅ SOLID ★★ / ⚠ CAUTION ★) with two "why" lines under the statistics title, replacing the weak-preset note; same ratings in the Strategy tooltip. New "Statistics text size" setting (Small / Normal / Large, default Normal); the table was small before. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

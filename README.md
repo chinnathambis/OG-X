@@ -1,6 +1,6 @@
 # OG X
 
-**OG X v.2.4.2 + Alerts**: an original Pine Script v6 indicator for TradingView. It trades channel breakouts on 45-minute bars, with presets for 12 coins plus the BTC strategies. Developed from a clean-room study of the Predictum indicator: public screenshots, videos and exchange price data only, none of its code. Not affiliated with Predictum.
+**OG X v.2.4.4 + Alerts**: an original Pine Script v6 indicator for TradingView. It trades channel breakouts on 45-minute bars, with presets for 39 coins plus the two BTC strategies, each with a backtest confidence rating. Developed from a clean-room study of the Predictum indicator: public screenshots, videos and exchange price data only, none of its code. Not affiliated with Predictum.
 
 ## Repository
 | Path | What |

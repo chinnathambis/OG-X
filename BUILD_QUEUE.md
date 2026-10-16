@@ -7,9 +7,41 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
+Current release: **OG X v.2.4.4 + Alerts** (16 Oct 2026). Next build: P1.
 
-## P0: bugs and fixes for v.2.4.4
+## P0: bugs and fixes
+_Empty._
+
+## P1: agreed features
+1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
+   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
+   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
+   - Tooltip: low leverage only (1–2×).
+   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
+
+## P2: ideas
+- **Northline bot alerts, same as OG Shot (parked 16 Oct 2026).** Send OG Shot's JSON so the Northline bot / mini app can trade OG X signals.
+  - New trade: `{"event":"LONG/SHORT","symbol","exchange","tf":"45m","strategy":"OG X <COIN>","entry","zone":[lo,hi],"tp":[TP1–TP4],"sl","accuracy":{all,short,long,last5,last10,last20},"time"}`.
+  - Follow-ups: `TARGET` (targets hit) and `STOP`.
+  - Plus a "Message format" setting (Telegram / JSON / Both) like OG Shot.
+  - Draft defaults:
+    - TP1–TP4 (+0.3 / 1 / 2 / 3 %) go to the bot; TP5 stays on the chart only.
+    - Entry zone = entry → TP1.
+    - The alert fires on the touch (intrabar), not at bar close.
+  - Open points:
+    - TP1 at +0.3 % with the bot's 50 % first close.
+    - Check `CONTRACT.md` in the bot repo for allowed strategy names / fields.
+    - One alert per chart (12) until the hub exists.
+- **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
+  - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
+  - **Data point 2 (dark screenshot, 15 Oct 2026):** API3USDT, Bybit, 45m, Long on Sat 16 Aug 2025 11:15 (chart time zone unknown), peak profit +1193.06 %. The indicator's legend reads "Crackōs v.1.0.1 + Alerts", which is probably the TradingView name of Predictum X.
+- **Predictum X look (option)** (from the AVL screenshot; API3 dark screenshot adds: blue "Prepare to Long" box on the candle before entry, white dashed vertical line at the entry candle, white dashed entry-price line running to the right edge, "Long ↗" label drawn in red): "Long ↗" / "Short ↘" boxes, monospace green "Peak profit" boxes, teal/pink background, TP1–4 lines close together with TP5 and TP6 further out, red SL line.
+- **Predictum X–style alert message** (from the same screenshot): "#COIN | Open Long · Current price · Settings: EXCHANGE. Timeframe: 45 min · Strategy score · TP1–6 with Probability % · DCA 1–3 · ID: #Long_COIN_dd_MM_yyyy_HH_mm". Probability per TP can come from our own statistics (the TP hit rate on this coin). "PNL %" and "Strategy score" formulas are unknown (PNL doesn't scale with the TP distance), so leave them out until the X research explains them.
+- **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
+- **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
+- **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
+
+## Shipped in v.2.4.4 (16 Oct 2026)
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
    - **Red WARNING box** when the chart differs from the presets. Each check gets ✅ or ❌:
      - timeframe 45 min or lower
@@ -71,34 +103,8 @@ Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
    - Custom or a coin without a preset: "No backtest rating: Custom settings".
    - This replaces the separate "⚠ … preset: …" note line.
 
-## P1: agreed features
-1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
-   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
-   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
-   - Tooltip: low leverage only (1–2×).
-   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
-
-## P2: ideas
-- **Northline bot alerts, same as OG Shot (parked 16 Oct 2026).** Send OG Shot's JSON so the Northline bot / mini app can trade OG X signals.
-  - New trade: `{"event":"LONG/SHORT","symbol","exchange","tf":"45m","strategy":"OG X <COIN>","entry","zone":[lo,hi],"tp":[TP1–TP4],"sl","accuracy":{all,short,long,last5,last10,last20},"time"}`.
-  - Follow-ups: `TARGET` (targets hit) and `STOP`.
-  - Plus a "Message format" setting (Telegram / JSON / Both) like OG Shot.
-  - Draft defaults:
-    - TP1–TP4 (+0.3 / 1 / 2 / 3 %) go to the bot; TP5 stays on the chart only.
-    - Entry zone = entry → TP1.
-    - The alert fires on the touch (intrabar), not at bar close.
-  - Open points:
-    - TP1 at +0.3 % with the bot's 50 % first close.
-    - Check `CONTRACT.md` in the bot repo for allowed strategy names / fields.
-    - One alert per chart (12) until the hub exists.
-- **Predictum X research (next step after the 2021–22 recreation).** _Status 15 Oct 2026: 14 signals checked. Same breakout engine very likely (one setting, 200 bars + 0.8 %, matches 12/14 signal candles exactly; see RESEARCH.md). Waiting for the full Telegram export (shorts and TP/stop follow-ups) to recover per-coin settings and the stop rule._ Collect 10–20 real Predictum X signals with exact time, coin, entry and TPs (Telegram posts or screenshots). Check whether X uses the same channel-breakout engine, and recover its per-coin settings, TP1–6, DCA sizing and stop. Then decide whether to add X-style strategies.
-  - **Data point 1 (screenshot, 15 Oct 2026):** AVLUSDT, Bybit, 45m. "Open Long" alert 24 Oct 2025, ID `Long_AVL_24_10_2025_06_45`, current price 0.1313, strategy score 10.72. TP1–6 = 0.13264 / 0.13401 / 0.13527 / 0.13667 / 0.14189 / 0.15766 (+1 / 2 / 3 / 4 / 8 / 20 % from ≈0.13132). DCA 0.12211 / 0.1116 / 0.098475 (−7 / −15 / −25 %). Probabilities 100 / 96 / 88 / 88 / 63 / 33 %. Chart also shows a Long ≈30 Sep 2025 and a Short ≈9 Oct 2025. To test the engine, download Bybit AVLUSDT 45m (Sep–Nov 2025) and check whether a channel breakout fires at those times.
-  - **Data point 2 (dark screenshot, 15 Oct 2026):** API3USDT, Bybit, 45m, Long on Sat 16 Aug 2025 11:15 (chart time zone unknown), peak profit +1193.06 %. The indicator's legend reads "Crackōs v.1.0.1 + Alerts", which is probably the TradingView name of Predictum X.
-- **Predictum X look (option)** (from the AVL screenshot; API3 dark screenshot adds: blue "Prepare to Long" box on the candle before entry, white dashed vertical line at the entry candle, white dashed entry-price line running to the right edge, "Long ↗" label drawn in red): "Long ↗" / "Short ↘" boxes, monospace green "Peak profit" boxes, teal/pink background, TP1–4 lines close together with TP5 and TP6 further out, red SL line.
-- **Predictum X–style alert message** (from the same screenshot): "#COIN | Open Long · Current price · Settings: EXCHANGE. Timeframe: 45 min · Strategy score · TP1–6 with Probability % · DCA 1–3 · ID: #Long_COIN_dd_MM_yyyy_HH_mm". Probability per TP can come from our own statistics (the TP hit rate on this coin). "PNL %" and "Strategy score" formulas are unknown (PNL doesn't scale with the TP distance), so leave them out until the X research explains them.
-- **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
-- **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
-- **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
+6. **Statistics text size** (asked at build time, 16 Oct 2026): the table text was small. New setting "Statistics text size" (Small / Normal / Large), default Normal.
+7. **Build notes.** The supported-tickers list is 3 per row (monospace) instead of one per line, because 40 tickers in one column would cover the chart. Rating lines use a fresh full-period backtest of every preset (`research/preset_ratings_v244.json`); tiers are the approved ones.
 
 ## Shipped in v.2.4.0 (16 Oct 2026) (from v2.3 testing, 15–16 Oct 2026; mocks in `research/mocks/approved/v24_*`)
 1. **Statistics table: keep the Predictum style, fix the layout (option A).** Same green centred block and emojis. Wrap the long last lines onto two lines (e.g. "Realised (stop or next signal, 1×, fees 0.08%):" / "wins … · net … · max DD …", and the two ACCURACY lines) so nothing runs over the chart or the price scale. No "Modern" style.

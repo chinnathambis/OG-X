@@ -1,6 +1,6 @@
 # OG Breakout — features
 
-Original Predictum recreation (clean-room). Current build: **OG X v.2.4.2** (`indicator/og_x.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
+Original Predictum recreation (clean-room). Current build: **OG X v.2.4.4** (`indicator/og_x.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
 
 ## Engine (Predictum's, recovered and verified)
 - **Channel breakout on 45m bars.** Long level = highest high of the last N 45m bars (excluding the current one) × (1 − buffer). Short level = lowest low × (1 + buffer).
@@ -13,10 +13,11 @@ Original Predictum recreation (clean-room). Current build: **OG X v.2.4.2** (`in
 ## Strategies (Strategy dropdown)
 | Strategy | N (45m bars) | Buffer | Stop | Notes |
 |---|---|---|---|---|
-| Auto | — | — | — | BTC chart → v2.2; ETH chart → ETH; other coins → Custom |
+| Auto | — | — | — | the chart coin's preset (BTC → v2.2); other coins → Custom |
 | BTCUSDT.P \| 45 min \| v2.2 | 180 | 0.6 % | 6 % | Predictum v2.2.x (Dec 2021 – Jan 2022 entries matched to the cent) |
 | BTCUSDT.P \| 45 min \| v.5 | 210 | 0 % | 6 % | Predictum v.5 (50/50 signals matched) |
 | ETHUSDT.P \| 45 min | 450 | 0 % | 8 % | Predictum ETH statistics (21/30 exact, rest within a day) |
+| Coin presets (39) | per coin | per coin | per coin | Auto picks the chart's coin. Original strategies: ETH-type DOGE, QNT, XRP, AAVE, PENGU, DASH, 1000BONK, AERO, BOME, ENJ, GALA, RENDER, VVV; v2.2-type PAXG, MINA, SEI, POL, GRT; v.5-type ZEC, 1000PEPE, SOL, BCH, RAYSOL, BLUR, KMNO. Tuned (bars/buffer/stop): SUI 700/1/4, UNI 70/0.6/8, ARB 60/0.6/10, STRK 170/1/8, WLD 60/0/4, TAO 60/0/10, EGLD 680/1/10, S 60/0.6/10, XLM 180/0/4, KAIA 700/0/3, SAND 660/1/8, AR 680/0/10, TRX 700/0.6/3 |
 | Custom | input | input | input | Custom take-profit list too |
 Take-profits (Predictum strategies): 0.3 / 1 / 2 / 3 / 10 %. Short TPs = entry / (1 + p).
 
@@ -50,3 +51,8 @@ Status: **Queued** = agreed, waiting to be built. **Idea** = discussed, not deci
 5. **Idea — re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
 6. **Idea — "Experimental" group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
 7. **Reference — tuned presets from v1.3–v1.5** (Universal 500 / 0.6 % / 3 %, Fast … Very slow, coin-tuned, timeframe scaling) stay in `indicator/archive/`. Research in `RESEARCH.md` if they are wanted again.
+
+## v.2.4.4 additions
+- **Chart check.** Red WARNING box with ✅/❌ for timeframe (45 min or lower), supported ticker, exchange (BINANCE/BYBIT) and ".P". On a correct chart with no preset, a blue "No preset … Custom settings are in use" note appears instead. The SUPPORTED TICKERS list sits under either box. Signals keep running. Setting: "Hide the chart check".
+- **Confidence rating** under the statistics title: 🏆 TOP PICK ★★★, ✅ SOLID ★★ or ⚠ CAUTION ★, plus "Tested: 2024–25 x% · 2026 y%" and either "Worst drawdown d% · profit factor p" or the caution reason. Ratings are stored per preset (`research/preset_ratings_v244.json`, `tools/preset_ratings.py`). Custom shows "No backtest rating: Custom settings".
+- **Statistics text size:** Small / Normal / Large (default Normal).
