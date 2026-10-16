@@ -25,6 +25,8 @@ perps = {s["symbol"] for s in get("/fapi/v1/exchangeInfo")["symbols"]
          if s["contractType"] == "PERPETUAL" and s["quoteAsset"] == "USDT" and s["status"] == "TRADING"}
 tick = sorted((t for t in get("/fapi/v1/ticker/24hr") if t["symbol"] in perps and t["symbol"] not in SKIP),
               key=lambda t: float(t["quoteVolume"]), reverse=True)
+# keep plain A-Z/0-9 symbols only (Binance also lists coins with Chinese-character names, which break the URL)
+tick = [t for t in tick if t["symbol"].isascii() and t["symbol"].isalnum()]
 coins = [t["symbol"] for t in tick[:TOP_N] if t["symbol"] not in DONE]
 coins += [c for c in EXTRA if c in perps and c not in coins and c not in DONE]
 print(len(coins), "coins to download:", ", ".join(coins), flush=True)
@@ -42,8 +44,8 @@ for n, sym in enumerate(coins, 1):
             rows += [[k[0], k[1], k[2], k[3], k[4], k[5]] for k in batch]
             a = batch[-1][0] + 1
             time.sleep(0.15)
-    except urllib.error.HTTPError as e:
-        print(f"[{n}/{len(coins)}] {sym}: error {e.code}, skipped"); continue
+    except Exception as e:
+        print(f"[{n}/{len(coins)}] {sym}: error {e}, skipped"); continue
     if not rows:
         print(f"[{n}/{len(coins)}] {sym}: no data"); continue
     with open(out, "w", newline="") as f:
