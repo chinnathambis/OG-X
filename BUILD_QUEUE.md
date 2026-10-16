@@ -56,6 +56,21 @@ Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
    - **Tuned per coin (bars / buffer / stop):** S 60 / 0.6 % / 10 %, XLM 180 / 0 / 4 %, KAIA 700 / 0 / 3 %, SAND 660 / 1 % / 8 %, AR ⚠ 680 / 0 / 10 % (few trades), TRX ⚠ 700 / 0.6 % / 3 % (few trades).
    - Menu total after items 2–4: about 40 coin presets plus the two BTC entries. Group them in the menu: BTC entries first, then A–Z.
 
+5. **Confidence rating in the statistics table** (approved 16 Oct 2026, with the badge background removed; mock `research/mocks/approved/v244_confidence_rating.png`).
+   - Under the "Statistics on …" title, one plain bold text line with **no background colour**, same Classic table style: "🏆 TOP PICK ★★★", "✅ SOLID ★★" or "⚠ CAUTION ★".
+   - Two short lines under it say why, e.g. "Tested: 2024–25 +537% · 2026 +47%" and "Worst drawdown 40% · profit factor 3.2". For Caution, the second line names the reason (e.g. "Worst drawdown 62% (deep) · keep size small", "Only 10 trades in 2026", "Weak in 2024–25").
+   - The same rating appears in the Strategy tooltip.
+   - Rules (from the 2-year backtest of each preset):
+     - ★★★: 2024–25 ≥ +50 %, 2026 ≥ +40 %, DD ≤ 50 %.
+     - ★★: both periods ≥ +10 %, DD ≤ 60 %.
+     - ★: anything weaker, or few trades.
+   - Ratings are stored per preset, not calculated live:
+     - ★★★: PENGU, MINA, DASH, 1000BONK, AERO, SEI, S, STRK, WLD, ARB, UNI.
+     - ★★: ZEC, DOGE, ETH, 1000PEPE, SOL, SUI, TAO, RAYSOL, BOME, BLUR, POL, KMNO, GRT, ENJ, GALA, RENDER, XLM, KAIA, SAND.
+     - ★: QNT, XRP, AAVE, PAXG, EGLD, BCH, VVV, AR, TRX, BTC v2.2, BTC v.5.
+   - Custom or a coin without a preset: "No backtest rating: Custom settings".
+   - This replaces the separate "⚠ … preset: …" note line.
+
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
    - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
