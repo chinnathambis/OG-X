@@ -48,6 +48,14 @@ Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
    - Not added: ZEREBRO and BTC tuned (barely profitable in training, +4 % / +6 %).
    - Update the strategy tooltip and the chart-check "SUPPORTED TICKERS" list: 17 presets plus BCH ⚠.
 
+4. **Round-2 presets: 21 more coins** (approved 16 Oct 2026; `research/orig_strategies_round2.csv`, `research/per_coin_tune_round2.csv`, RESEARCH.md "Preset scan round 2"). Menu names "<SYMBOL>.P - Binance Futures | 45 min timeframe", picked by Auto; add them to the tooltip and the chart-check ticker list.
+   - **Original strategies:**
+     - ETH strategy: PENGU, DASH, 1000BONK, AERO, BOME, ENJ, GALA, RENDER, VVV ⚠ (DD 64 %).
+     - BTC v2.2: MINA, SEI, POL, GRT.
+     - BTC v.5: RAYSOL, BLUR, KMNO.
+   - **Tuned per coin (bars / buffer / stop):** S 60 / 0.6 % / 10 %, XLM 180 / 0 / 4 %, KAIA 700 / 0 / 3 %, SAND 660 / 1 % / 8 %, AR ⚠ 680 / 0 / 10 % (few trades), TRX ⚠ 700 / 0.6 % / 3 % (few trades).
+   - Menu total after items 2–4: about 40 coin presets plus the two BTC entries. Group them in the menu: BTC entries first, then A–Z.
+
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
    - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
