@@ -40,6 +40,12 @@ _Empty._
 - **One alert for all coins** (hub, Telegram-ready messages), like `og_shot_hub.pine`.
 - **Re-check on the full history** (`tools/fetch_max_data.py`, 24 coins from 2019) before trading real money.
 - **"Experimental" strategy group** for settings that only look good on recent months (e.g. EGLD 15m 500 / 0.4 % / 8 %), clearly marked as not validated.
+- **OG X Strategy: companion strategy script** (added 17 Oct 2026). A separate `strategy()` file next to the indicator; OG X stays an indicator for trading and alerts.
+  - Same engine and presets as OG X. Entries are stop orders at the channel level (intrabar touch); exit at the stop or the next signal; commission 0.04 % per side, plus a slippage input.
+  - **TP plan setting:** Hold (no TPs) / Half at TP3, rest hold / Ladder 20 % at each TP / All out at TP5.
+  - Purpose: cross-check our Python backtests on TradingView's own data, and let the user test any coin, preset or TP plan in the Strategy Tester.
+  - Python check (17 Oct 2026, 40 presets, 1×, fees): median net per coin Hold +195 % (DD 44 %), Half at TP3 +110 % (DD 28 %), All out at TP5 +102 % (DD 31 %), Ladder 20 % +22 % (DD 18 %), All out at TP1 −17 % (1/40 profitable). Data: `research/tp_ladder_test.csv`.
+  - Note: strategies cannot use `alertcondition`, which is one reason OG X itself stays an indicator. TradingView's 45m history may be shorter than our two years unless Deep Backtesting is used.
 
 ## Shipped in v.2.4.4 (16 Oct 2026)
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
