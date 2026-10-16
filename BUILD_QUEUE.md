@@ -22,6 +22,9 @@ Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
    - Signals keep running in both cases (unlike Predictum, which blocks).
    - New setting **"Hide the chart check"** turns both boxes off.
 
+2. **Add BCHUSDT.P preset** (requested 16 Oct 2026). Menu entry "BCHUSDT.P - Binance Futures | 45 min timeframe", picked by Auto on BCH, using the **BTC v.5 strategy** (210 / 0 % / 6 %). Mark it **⚠** in the tooltip and the stats ("⚠ BCH preset: lost money in 2024–25") and add it to the chart-check ticker list with ⚠.
+   - Backtest (Binance futures 45m, 1×, fees): it lost money overall on all three strategies. BTC v.5 −50 % total (2024–25 −74 %, 2026 +93 %, DD 78 %, PF 0.89). ETH −41 % (−57 %, +37 %, DD 70 %). v2.2 −61 % (−74 %, +47 %, DD 88 %). v.5 was picked for the strongest 2026.
+
 ## P1: agreed features
 1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
    - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
