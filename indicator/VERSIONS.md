@@ -28,4 +28,6 @@ The current build is always `indicator/og_x.pine` (named `og_breakout.pine` up t
 
 | v.2.4.2 | 16 Oct 2026 | `archive/og_x_v2.4.2.pine` | "+" is a 40 pt text "+" (the drawn cross was too tall); "Get ready" pill in the side colour (green Long, red Short) at the Long/Short label size; only one "Get ready" per side per trade (re-armed by a new signal or a stop), instead of every time price wobbled near the level. |
 
+| v.2.4.3 | 16 Oct 2026 | `archive/og_x_v2.4.3.pine` | Fix: the 40 pt "+" sat above its price, out of line with the blue tag. It is now a transparent centred label, so the "+" sits exactly on the next-signal price, level with the tag's pointer. |
+
 **When releasing a new version:** bump the header line, copy the file to `archive/og_breakout_vX.Y.pine`, and add a row here.

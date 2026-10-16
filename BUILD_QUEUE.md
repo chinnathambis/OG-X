@@ -7,9 +7,9 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **OG X v.2.4.2 + Alerts** (16 Oct 2026). Next build: P1.
+Current release: **OG X v.2.4.3 + Alerts** (16 Oct 2026). Next build: P1.
 
-## P0: bugs and fixes for v.2.4.3
+## P0: bugs and fixes for v.2.4.4
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
    - **Red WARNING box** when the chart differs from the presets. Each check gets ✅ or ❌:
      - timeframe 45 min or lower

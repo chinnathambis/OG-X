@@ -1,9 +1,9 @@
 //@version=6
-// OG X v.2.4.2 + Alerts (16 Oct 2026)
+// OG X v.2.4.3 + Alerts (16 Oct 2026)
 // Engine (fixed on 45m): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
 // Strategy presets per coin, a "+" helper for the next entry, and a statistics block. Older versions in archive/.
-indicator("OG X v.2.4.2 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+indicator("OG X v.2.4.3 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────── Strategy menu (shown in TradingView's legend)
 const string O_AUTO = "Auto"
@@ -341,7 +341,7 @@ int PLUS_W = 2   // room for the "+" before the tag
 // d = side of the next signal, e = its price
 drawNext(int d, float e) =>
     color sc = d == 1 ? colL : colS
-    nxtLbls.push(label.new(bar_index + PLUS_X, e, "+", style = label.style_none, textcolor = sc, size = 40))   // "+" at 40 pt
+    nxtLbls.push(label.new(bar_index + PLUS_X, e, "+", style = label.style_label_center, color = color(na), textcolor = sc, size = 40))   // "+" at 40 pt, centred on the price (style_none drew it above the level)
     string nm = d == 1 ? "Long" : "Short"
     string txt = ""
     if pos == -d and not na(ent)
