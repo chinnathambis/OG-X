@@ -1,0 +1,25 @@
+portfolio,2024-25 net%,2024-25 maxDD%,2026 net%,2026 maxDD%,all net%,all maxDD%,sharpe(d)
+top20 liquid · 20d only · raw · equal,56.4,14.9,0.4,23.6,60.1,23.6,0.94
+top20 liquid · 20d only · raw · vol-size,72.3,15.8,5.4,25.9,85.5,25.9,1.12
+top20 liquid · 20d only · trend · equal,62.6,14.0,-0.5,22.3,64.7,22.3,1.0
+top20 liquid · 20d only · trend · vol-size,78.3,15.9,3.6,24.9,87.9,24.9,1.15
+top20 liquid · ensemble 10/20/40/60d · raw · equal,1.4,15.2,-3.2,14.1,-0.5,15.9,0.07
+top20 liquid · ensemble 10/20/40/60d · raw · vol-size,13.2,14.9,-3.4,17.2,10.9,19.4,0.35
+top20 liquid · ensemble 10/20/40/60d · trend · equal,7.5,14.0,-2.0,13.5,6.9,14.0,0.28
+top20 liquid · ensemble 10/20/40/60d · trend · vol-size,16.8,16.3,-2.4,17.2,15.4,20.5,0.45
+top20 liquid · ensemble 20/40d · raw · equal,23.8,13.6,1.7,17.1,27.4,17.1,0.65
+top20 liquid · ensemble 20/40d · raw · vol-size,30.9,15.6,4.4,20.6,38.5,20.6,0.81
+top20 liquid · ensemble 20/40d · trend · equal,28.1,12.9,2.3,15.2,32.6,15.2,0.74
+top20 liquid · ensemble 20/40d · trend · vol-size,34.6,15.2,3.9,18.5,41.5,18.5,0.87
+all 96 · 20d only · raw · equal,-4.3,22.7,27.0,10.8,23.5,22.7,0.6
+all 96 · 20d only · raw · vol-size,5.9,19.4,30.7,12.0,40.3,19.4,0.92
+all 96 · 20d only · trend · equal,2.9,21.2,24.9,11.5,30.5,21.2,0.75
+all 96 · 20d only · trend · vol-size,11.5,18.5,27.3,13.1,43.9,18.5,1.02
+all 96 · ensemble 10/20/40/60d · raw · equal,-28.1,30.1,13.1,10.9,-18.2,30.1,-0.83
+all 96 · ensemble 10/20/40/60d · raw · vol-size,-19.1,23.2,15.7,9.4,-6.0,23.2,-0.22
+all 96 · ensemble 10/20/40/60d · trend · equal,-20.5,24.1,14.6,8.1,-8.3,24.1,-0.34
+all 96 · ensemble 10/20/40/60d · trend · vol-size,-13.3,20.6,16.0,7.7,1.0,20.6,0.1
+all 96 · ensemble 20/40d · raw · equal,-18.2,25.4,19.7,9.3,-1.3,25.4,0.02
+all 96 · ensemble 20/40d · raw · vol-size,-9.9,20.8,23.0,8.5,11.6,20.8,0.48
+all 96 · ensemble 20/40d · trend · equal,-12.4,22.9,18.7,7.9,4.8,22.9,0.24
+all 96 · ensemble 20/40d · trend · vol-size,-5.5,19.2,20.8,7.9,14.9,19.2,0.61

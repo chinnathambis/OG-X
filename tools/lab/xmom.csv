@@ -1,0 +1,49 @@
+portfolio,2024-25 net%,2024-25 maxDD%,2026 net%,2026 maxDD%,all net%,all maxDD%,sharpe(d)
+mom7d top20% mom only both,-3.9,13.8,15.9,11.7,12.7,13.8,0.45
+mom7d top20% mom only long only,3.0,9.3,5.5,13.6,8.6,17.1,0.34
+mom7d top20% mom+trend both,-1.9,11.9,5.5,15.8,4.5,15.8,0.23
+mom7d top20% mom+trend long only,8.7,7.3,6.7,11.2,16.0,12.7,0.6
+mom7d top33% mom only both,-6.0,15.9,13.3,13.9,8.0,15.9,0.31
+mom7d top33% mom only long only,5.0,10.0,2.5,16.8,7.7,21.0,0.3
+mom7d top33% mom+trend both,-2.7,14.9,7.4,15.0,5.9,15.0,0.26
+mom7d top33% mom+trend long only,11.1,8.1,2.5,15.3,13.9,17.1,0.51
+mom7d top50% mom only both,-0.7,16.6,14.6,15.4,15.6,16.6,0.47
+mom7d top50% mom only long only,8.7,10.9,0.6,19.5,9.3,24.8,0.34
+mom7d top50% mom+trend both,3.6,16.5,8.6,17.3,14.3,17.3,0.47
+mom7d top50% mom+trend long only,15.5,9.0,0.8,17.7,16.5,19.7,0.55
+mom14d top20% mom only both,-6.6,15.0,6.6,12.2,1.0,15.0,0.1
+mom14d top20% mom only long only,2.7,9.9,-0.1,11.6,2.6,15.2,0.16
+mom14d top20% mom+trend both,-1.9,12.3,-0.3,14.5,-0.9,14.5,0.02
+mom14d top20% mom+trend long only,7.9,6.9,1.1,9.6,9.1,10.8,0.43
+mom14d top33% mom only both,-7.4,18.0,19.9,11.2,12.6,18.0,0.4
+mom14d top33% mom only long only,5.9,9.3,5.9,13.2,12.1,16.1,0.41
+mom14d top33% mom+trend both,-2.0,15.4,8.6,15.1,8.2,15.4,0.33
+mom14d top33% mom+trend long only,11.9,8.5,6.9,11.1,19.7,12.8,0.66
+mom14d top50% mom only both,-2.6,18.2,20.0,11.0,18.9,18.2,0.54
+mom14d top50% mom only long only,8.3,9.9,0.4,18.9,8.7,23.5,0.32
+mom14d top50% mom+trend both,3.6,18.3,10.9,14.9,17.0,18.3,0.53
+mom14d top50% mom+trend long only,15.3,8.6,0.5,17.6,15.9,19.6,0.54
+mom30d top20% mom only both,2.3,10.3,8.4,8.5,12.4,10.3,0.54
+mom30d top20% mom only long only,7.0,6.0,0.8,8.9,7.8,10.3,0.41
+mom30d top20% mom+trend both,8.3,7.6,10.4,7.3,21.1,7.6,0.89
+mom30d top20% mom+trend long only,12.1,4.9,3.5,7.1,16.0,7.9,0.81
+mom30d top33% mom only both,-0.5,13.9,15.8,10.9,16.6,13.9,0.54
+mom30d top33% mom only long only,6.9,8.8,3.7,12.3,10.9,15.1,0.41
+mom30d top33% mom+trend both,8.1,10.6,17.4,10.3,28.3,10.6,0.87
+mom30d top33% mom+trend long only,13.1,7.1,5.8,10.3,19.8,11.3,0.7
+mom30d top50% mom only both,-0.3,17.4,21.3,11.7,22.3,17.4,0.6
+mom30d top50% mom only long only,9.2,9.8,7.8,13.5,17.8,16.8,0.53
+mom30d top50% mom+trend both,6.8,17.6,23.9,10.6,33.8,17.6,0.85
+mom30d top50% mom+trend long only,16.6,7.5,8.2,11.9,26.2,13.3,0.77
+mom60d top20% mom only both,-4.2,11.8,9.7,7.7,5.4,11.8,0.3
+mom60d top20% mom only long only,-9.4,14.2,8.4,8.3,-1.8,17.0,-0.01
+mom60d top20% mom+trend both,-2.2,9.3,7.7,5.8,5.4,9.3,0.33
+mom60d top20% mom+trend long only,-5.7,9.2,6.3,6.8,0.3,12.1,0.06
+mom60d top33% mom only both,-6.5,13.9,16.8,9.5,9.3,13.9,0.4
+mom60d top33% mom only long only,-12.5,17.1,7.6,11.0,-5.9,22.1,-0.17
+mom60d top33% mom+trend both,-2.4,12.9,16.7,8.0,14.2,12.9,0.59
+mom60d top33% mom+trend long only,-6.3,12.2,10.5,8.5,3.5,14.3,0.19
+mom60d top50% mom only both,5.5,20.5,13.7,12.1,20.1,20.5,0.61
+mom60d top50% mom only long only,14.2,10.1,-0.6,15.4,13.4,20.5,0.49
+mom60d top50% mom+trend both,11.5,20.8,17.5,11.0,31.3,20.8,0.87
+mom60d top50% mom+trend long only,22.2,8.6,2.7,12.4,25.4,13.5,0.82

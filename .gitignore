@@ -2,3 +2,6 @@ data/*.csv
 data_bybit/*.csv
 __pycache__/
 .DS_Store
+tools/lab/*.pkl
+tools/lab/*.so
+data_bybit/full/

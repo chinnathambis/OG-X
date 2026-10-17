@@ -47,6 +47,14 @@ _Empty._
   - Python check (17 Oct 2026, 40 presets, 1×, fees): median net per coin Hold +195 % (DD 44 %), Half at TP3 +110 % (DD 28 %), All out at TP5 +102 % (DD 31 %), Ladder 20 % +22 % (DD 18 %), All out at TP1 −17 % (1/40 profitable). Data: `research/tp_ladder_test.csv`.
   - Note: strategies cannot use `alertcondition`, which is one reason OG X itself stays an indicator. TradingView's 45m history may be shorter than our two years unless Deep Backtesting is used.
 
+- **Proposals from the research lab (17 Oct 2026, `research/LAB_2026-10-17.md`). Each needs a yes before it moves up.**
+  1. **Honest rating wording.** The ★ ratings and "Tested 2026" lines are in-sample (2026 was used to pick the presets), and past results per coin barely predict future results. Reword to "Backtest (in-sample)" and add a line in the tooltip.
+  2. **Trend filter setting** (on by default for Custom, optional for presets): Longs only when the coin is above its 15-day EMA and BTC is above its own; Shorts only when both are below. Robust across coins and both periods.
+  3. **"Basket" strategy** for coins without a preset: 640-bar channel (20 days), 0 % buffer, 12 % stop, trend filter on. Basket result on 96 coins: +44 % / 2 years, DD 18.5 %, positive in both periods.
+  4. **Position-size helper** in the stats table: suggested size ∝ 1 / volatility, and half size after a > +10 % win.
+  5. **Partial take at +8 %** as a TP-plan option (50 % off, hold the rest): same profit, drawdown 45 → 35 %.
+  6. **Drop or park P1 "DCA + SL"**: DCA lowered return per unit of drawdown from 1.7 to 0.8 on the presets.
+
 ## Shipped in v.2.4.4 (16 Oct 2026)
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
    - **Red WARNING box** when the chart differs from the presets. Each check gets ✅ or ❌:
