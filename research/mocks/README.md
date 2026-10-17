@@ -52,3 +52,8 @@ Build tasks live in [`BUILD_QUEUE.md`](../../BUILD_QUEUE.md). This file records 
 | 5 | [Tag colour A vs B](superseded/5_tag_colour_A_vs_B.png) | B (blue) was chosen. |
 | 6 | [Plain wording with connector line](superseded/6_plain_wording_with_connector.png) | The connector line was not needed. Also showed −17.8% when the stop actually exits first at −8%. |
 | 7 | [Both stop modes with connector line](superseded/7_both_stop_modes_with_connector.png) | Replaced by the version without the line. |
+
+## v.2.4.5: research-lab proposals (approved 17 Oct 2026)
+| Real trade (ZEC, Mar–Apr 2026) | Settings and a coin without a preset |
+|---|---|
+| ![chart](approved/v245_lab_1_chart_zec.png) | ![settings](approved/v245_lab_2_settings_basket.png) |

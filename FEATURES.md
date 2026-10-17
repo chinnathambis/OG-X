@@ -1,6 +1,6 @@
 # OG Breakout — features
 
-Original Predictum recreation (clean-room). Current build: **OG X v.2.4.4** (`indicator/og_x.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
+Original Predictum recreation (clean-room). Current build: **OG X v.2.4.5** (`indicator/og_x.pine`). History: `indicator/VERSIONS.md`. Research: `RESEARCH.md`.
 
 ## Engine (Predictum's, recovered and verified)
 - **Channel breakout on 45m bars.** Long level = highest high of the last N 45m bars (excluding the current one) × (1 − buffer). Short level = lowest low × (1 + buffer).
@@ -56,3 +56,10 @@ Status: **Queued** = agreed, waiting to be built. **Idea** = discussed, not deci
 - **Chart check.** Red WARNING box with ✅/❌ for timeframe (45 min or lower), supported ticker, exchange (BINANCE/BYBIT) and ".P". On a correct chart with no preset, a blue "No preset … Custom settings are in use" note appears instead. The SUPPORTED TICKERS list sits under either box. Signals keep running. Setting: "Hide the chart check".
 - **Confidence rating** under the statistics title: 🏆 TOP PICK ★★★, ✅ SOLID ★★ or ⚠ CAUTION ★, plus "Tested: 2024–25 x% · 2026 y%" and either "Worst drawdown d% · profit factor p" or the caution reason. Ratings are stored per preset (`research/preset_ratings_v244.json`, `tools/preset_ratings.py`). Custom shows "No backtest rating: Custom settings".
 - **Statistics text size:** Small / Normal / Large (default Normal).
+
+## v.2.4.5 additions (from the research lab, `research/LAB_2026-10-17.md`)
+- **Basket (any coin)** strategy: 640 bars (20 days) / 0 % / 12 % stop with the trend filter; Auto uses it for coins without a preset.
+- **Trend filter** (FILTERS): Longs only when the coin and BTC are above their 15-day EMA (480 × 45m), Shorts only when both are below. Auto / On / Off; Auto = on for Basket and Custom. Skipped signals get a grey tag and still close an open opposite trade. Status rows in the statistics.
+- **Rating wording**: "· backtest, in-sample" and "Past results do not predict the next trade"; "Rating label" setting can hide it.
+- **Position-size helper** (POSITION SIZE): suggested size = risk % ÷ stop, × volatility factor (median ATR % ÷ current, 0.5–2×), × 0.5 after a > +10 % win; shown as "N× · X % of capital".
+- **TP plan** (TAKE-PROFIT PLAN): Hold / 50 % at +8 % (dashed green line + label) / Ladder; the realised line follows the plan.

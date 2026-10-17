@@ -1,9 +1,9 @@
 //@version=6
-// OG X v.2.4.4 + Alerts (16 Oct 2026)
+// OG X v.2.4.5 + Alerts (17 Oct 2026)
 // Engine (fixed on 45m): Donchian channel breakout, intrabar touch entry, one position at a time,
 // fixed % stop (or the opposite signal), fixed % take-profit ladder, same-side re-entry after a stop.
 // Strategy presets per coin, a "+" helper for the next entry, and a statistics block. Older versions in archive/.
-indicator("OG X v.2.4.4 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+indicator("OG X v.2.4.5 + Alerts", overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────── Strategy menu (shown in TradingView's legend): BTC entries first, then A–Z
 const string O_AUTO = "Auto"
@@ -48,6 +48,7 @@ const string O_WLD      = "WLDUSDT.P - Binance Futures | 45 min timeframe"
 const string O_XLM      = "XLMUSDT.P - Binance Futures | 45 min timeframe"
 const string O_XRP      = "XRPUSDT.P - Binance Futures | 45 min timeframe"
 const string O_ZEC      = "ZECUSDT.P - Binance Futures | 45 min timeframe"
+const string O_BASK = "Basket (any coin) · 20 days · 12 % stop"
 const string O_CUS  = "Custom"
 
 const string TT_STRAT = "Original strategies (all on 45 min):\n" +
@@ -56,8 +57,10 @@ const string TT_STRAT = "Original strategies (all on 45 min):\n" +
      "🏆 TOP PICK ★★★: PENGU, MINA, DASH, 1000BONK, AERO, SEI, S, STRK, WLD, ARB, UNI\n" +
      "✅ SOLID ★★: ZEC, DOGE, ETH, 1000PEPE, SOL, SUI, TAO, RAYSOL, BOME, BLUR, POL, KMNO, GRT, ENJ, GALA, RENDER, XLM, KAIA, SAND\n" +
      "⚠ CAUTION ★: QNT, XRP, AAVE, PAXG, EGLD, BCH, VVV, AR, TRX, BTC v2.2, BTC v.5\n\n" +
-     "Auto picks the preset for the chart's coin; other coins use Custom. With Auto the legend shows 'Auto': pick the coin's own entry to see its name there."
-strategyIn = input.string(O_AUTO, "Strategy", options = [O_AUTO, O_BTC, O_BTC5, O_B1000BONK, O_B1000PEPE, O_AAVE, O_AERO, O_AR, O_ARB, O_BCH, O_BLUR, O_BOME, O_DASH, O_DOGE, O_EGLD, O_ENJ, O_ETH, O_GALA, O_GRT, O_KAIA, O_KMNO, O_MINA, O_PAXG, O_PENGU, O_POL, O_QNT, O_RAYSOL, O_RENDER, O_S, O_SAND, O_SEI, O_SOL, O_STRK, O_SUI, O_TAO, O_TRX, O_UNI, O_VVV, O_WLD, O_XLM, O_XRP, O_ZEC, O_CUS],
+     "Ratings are from a backtest that used the same period to choose the presets (in-sample). Past results do not predict the next trade.\n\n" +
+     "Basket (any coin): 640 bars (20 days) / 0 % / 12 % stop with the trend filter. Tested as a portfolio of 96 coins: +44 % over 2 years, max drawdown 18.5 %.\n\n" +
+     "Auto picks the preset for the chart's coin; other coins use Basket. With Auto the legend shows 'Auto': pick the coin's own entry to see its name there."
+strategyIn = input.string(O_AUTO, "Strategy", options = [O_AUTO, O_BTC, O_BTC5, O_B1000BONK, O_B1000PEPE, O_AAVE, O_AERO, O_AR, O_ARB, O_BCH, O_BLUR, O_BOME, O_DASH, O_DOGE, O_EGLD, O_ENJ, O_ETH, O_GALA, O_GRT, O_KAIA, O_KMNO, O_MINA, O_PAXG, O_PENGU, O_POL, O_QNT, O_RAYSOL, O_RENDER, O_S, O_SAND, O_SEI, O_SOL, O_STRK, O_SUI, O_TAO, O_TRX, O_UNI, O_VVV, O_WLD, O_XLM, O_XRP, O_ZEC, O_BASK, O_CUS],
      tooltip = TT_STRAT, display = display.status_line)
 G_GEN = "GENERAL SETTINGS"
 bgOn     = input.bool(true,  "Highlight the background", group = G_GEN, inline = "bg", display = display.none)
@@ -84,6 +87,22 @@ statsBg  = input.color(#0d4a1e, "Statistics background", group = G_ST, display =
 statsN   = input.int(50, "The number of recent signals in statistics", minval = 5, maxval = 100, group = G_ST, display = display.none)
 statsSz  = input.string("Normal", "Statistics text size", options = ["Small", "Normal", "Large"], group = G_ST, display = display.none)
 statsPos = input.string("Top R", "Statistics position", options = ["Top R", "Bottom R", "Top L", "Bottom L"], group = G_ST, display = display.none)
+
+statsRate = input.string("backtest, in-sample", "Rating label", options = ["backtest, in-sample", "Hide rating"], group = G_ST, display = display.none)
+
+G_FLT = "FILTERS"
+trendMode = input.string("Auto", "Trend filter (coin + BTC, 15-day EMA)", options = ["Auto", "On", "Off"], group = G_FLT, display = display.none,
+     tooltip = "Longs only when the coin and BTC both close above their 15-day EMA (480 × 45m bars); Shorts only when both are below. A skipped signal still closes an open opposite trade. Auto = on for Basket and Custom, off for coin presets.")
+
+G_TPP = "TAKE-PROFIT PLAN"
+tpPlan = input.string("Hold (stop or next signal)", "TP plan", options = ["Hold (stop or next signal)", "50 % at +8 %, rest holds", "Ladder (equal parts at each TP)"], group = G_TPP, display = display.none,
+     tooltip = "How the realised results are counted. Hold: the whole position exits at the stop or the next signal. 50 % at +8 %: half is taken at +8 % (green line), the rest holds. Ladder: equal parts at each take-profit.")
+
+G_SZ = "POSITION SIZE"
+sizeOn  = input.bool(true, "Show suggested size in the statistics", group = G_SZ, display = display.none)
+halfWin = input.bool(true, "Half size after a win above +10 %", group = G_SZ, display = display.none)
+riskPct = input.float(1.0, "Risk per trade %", minval = 0.1, step = 0.1, group = G_SZ, display = display.none,
+     tooltip = "Share of your capital you lose if the stop is hit. Suggested size = risk ÷ stop distance, adjusted for the coin's current volatility (0.5–2×) and halved after a win above +10 %.")
 
 G_CUS = "CUSTOM STRATEGY (other coins)"
 nU       = input.int(180, "Channel length (45m bars)", minval = 10, maxval = 3000, group = G_CUS, display = display.none)
@@ -195,16 +214,17 @@ inf(string k) =>
         => ""
 
 bool   tickOK   = prm(coinK) != ""
-string autoPick = tickOK ? coinU + ".P - Binance Futures | 45 min timeframe" : O_CUS
+string autoPick = tickOK ? coinU + ".P - Binance Futures | 45 min timeframe" : O_BASK
 string stratEff = strategyIn == O_AUTO ? autoPick : strategyIn
-string key      = stratEff == O_CUS ? "" : stratEff == O_BTC5 ? "BTC5" : str.substring(stratEff, 0, str.pos(stratEff, "USDT.P"))
+bool   isBask   = stratEff == O_BASK
+string key      = stratEff == O_CUS or isBask ? "" : stratEff == O_BTC5 ? "BTC5" : str.substring(stratEff, 0, str.pos(stratEff, "USDT.P"))
 string pRow     = prm(key)
-bool   isCus    = pRow == ""
-string presetCoin = isCus ? "" : str.substring(stratEff, 0, str.pos(stratEff, ".P"))
+bool   isCus    = pRow == "" and not isBask
+string presetCoin = isCus or isBask ? "" : str.substring(stratEff, 0, str.pos(stratEff, ".P"))
 string mismatchNote = presetCoin != "" and presetCoin != coinU ? "⚠ Preset is for " + presetCoin + ".P, chart is " + coinU + ".P" : ""
-int   N   = isCus ? nU : int(str.tonumber(str.substring(pRow, 0, 3)))
-float BUF = isCus ? bufU / 100 : str.tonumber(str.substring(pRow, 4, 7)) / 100
-float SL  = isCus ? slU / 100 : str.tonumber(str.substring(pRow, 8, 10)) / 100
+int   N   = isBask ? 640 : isCus ? nU : int(str.tonumber(str.substring(pRow, 0, 3)))
+float BUF = isBask ? 0.0 : isCus ? bufU / 100 : str.tonumber(str.substring(pRow, 4, 7)) / 100
+float SL  = isBask ? 0.12 : isCus ? slU / 100 : str.tonumber(str.substring(pRow, 8, 10)) / 100
 string ladderStr = isCus ? ladderU : "0.3,1,2,3,10"
 
 parsePct(string s) =>
@@ -242,6 +262,21 @@ bool tfOK = timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(ENG_T
 float upL = hhE * (1 - BUF)
 float dnL = llE * (1 + BUF)
 
+// ─────────────────────────────── Trend filter and volatility (closed 45m bars only)
+bool trendOn = trendMode == "On" or (trendMode == "Auto" and (isBask or isCus))
+[cC, cE, vNow, vMed] = request.security(syminfo.tickerid, ENG_TF, [close[1], ta.ema(close, 480)[1], (ta.atr(96) / close)[1], ta.percentile_nearest_rank(ta.atr(96) / close, 1000, 50)[1]], lookahead = barmerge.lookahead_on)
+[bC, bE] = request.security("BINANCE:BTCUSDT.P", ENG_TF, [close[1], ta.ema(close, 480)[1]], lookahead = barmerge.lookahead_on)
+bool coinUp = cC > cE
+bool coinDn = cC < cE
+bool btcUp  = bC > bE
+bool btcDn  = bC < bE
+bool okL = not trendOn or (coinUp and btcUp)
+bool okS = not trendOn or (coinDn and btcDn)
+skipWhy(int d) =>
+    bool cBad = d == 1 ? not coinUp : not coinDn
+    bool bBad = d == 1 ? not btcUp : not btcDn
+    cBad and bBad ? "trend" : cBad ? "coin trend" : "BTC trend"
+
 // ─────────────────────────────── State
 var int   pos    = 0      // 1 long, -1 short, 0 flat after a stop
 var int   dir    = 0      // side of the last signal (background)
@@ -256,6 +291,9 @@ var box   trBox  = na     // background of the current trade (stop to profit sid
 var array<line> curLines = array.new<line>()
 var bool  armL = true
 var bool  armS = true
+var bool  hit8 = false    // +8 % reached before the stop (TP plan "50 % at +8 %")
+var bool  skL  = false    // "Long skipped" tag already drawn for this touch
+var bool  skS  = false
 
 // statistics (closed trades)
 var array<int>   stT  = array.new<int>()
@@ -264,6 +302,7 @@ var array<float> stPk = array.new<float>()
 var array<int>   stTp = array.new<int>()
 var array<bool>  stSl = array.new<bool>()
 var array<float> stR  = array.new<float>()
+var array<bool>  stH8 = array.new<bool>()
 
 peakPct(int d, float e, float p) => d == 1 ? p / e - 1 : e / p - 1
 // label rule (matches the original's history): a stopped trade whose best move never reached TP1 shows as -SL × leverage
@@ -294,30 +333,59 @@ if not oppSlOn
         slNow := true
 
 // ─────────────────────────────── 2) Signals: intrabar touch of the channel level
-bool longSig  = tfOK and not na(upL) and high >= upL and pos != 1
-bool shortSig = tfOK and not na(dnL) and low <= dnL and pos != -1 and not longSig
+bool rawL     = tfOK and not na(upL) and high >= upL and pos != 1
+bool rawS     = tfOK and not na(dnL) and low <= dnL and pos != -1 and not rawL
+bool longSig  = rawL and okL
+bool shortSig = rawS and okS
 bool newSig   = longSig or shortSig
+// a signal skipped by the trend filter still closes an open opposite trade
+bool cutSig   = not newSig and ((rawL and pos == -1) or (rawS and pos == 1))
+int   dS  = rawL ? 1 : rawS ? -1 : 0
+float pxS = dS == 1 ? math.max(open, upL) : dS == -1 ? math.min(open, dnL) : na
 
-if newSig
-    int   d  = longSig ? 1 : -1
-    float px = longSig ? math.max(open, upL) : math.min(open, dnL)
+// grey tag once per touch when the filter skips a signal
+if rawL and not okL and not skL
+    label.new(bar_index, low, "Long skipped · " + skipWhy(1) + " ✕", style = label.style_label_up, color = #5f6368, textcolor = color.white, size = szS)
+    skL := true
+if rawS and not okS and not skS
+    label.new(bar_index, high, "Short skipped · " + skipWhy(-1) + " ✕", style = label.style_label_down, color = #5f6368, textcolor = color.white, size = szS)
+    skS := true
+if rawS or newSig
+    skL := false
+if rawL or newSig
+    skS := false
+
+if (newSig or cutSig) and dir != 0 and not na(ent)
+    float px = pxS
     // close the previous trade (its peak excludes this bar)
-    if dir != 0 and not na(ent)
-        bool sl2 = slHit or slNow
-        float r = sl2 ? -SL : (px / ent - 1) * dir
-        stT.push(entT)
-        stD.push(dir)
-        stPk.push(peakPct(dir, ent, pkPx))
-        stTp.push(tpHit)
-        stSl.push(sl2)
-        stR.push(r)
-        if not slHit
-            for l in curLines
-                l.set_x2(bar_index)
-        if not na(trBox) and not slHit
-            trBox.set_right(bar_index)
-        if not na(pkLbl)
-            pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), sl2, tpHit)))
+    bool sl2 = slHit or slNow
+    float r = sl2 ? -SL : (px / ent - 1) * dir
+    stT.push(entT)
+    stD.push(dir)
+    stPk.push(peakPct(dir, ent, pkPx))
+    stTp.push(tpHit)
+    stSl.push(sl2)
+    stR.push(r)
+    stH8.push(hit8)
+    if not slHit
+        for l in curLines
+            l.set_x2(bar_index)
+    if not na(trBox) and not slHit
+        trBox.set_right(bar_index)
+    if not na(pkLbl)
+        pkLbl.set_text("Peak profit " + fmtPct(shownPct(peakPct(dir, ent, pkPx), sl2, tpHit)))
+    curLines.clear()
+if cutSig
+    // closed by a filtered signal: no new trade, stay flat
+    alert("#" + cleanSym() + " | " + (dir == 1 ? "Long" : "Short") + " closed · next " + (dS == 1 ? "Long" : "Short") + " skipped by the trend filter", alert.freq_once_per_bar)
+    pos := 0
+    dir := 0
+    ent := na
+    trBox := na
+    pkLbl := na
+if newSig
+    int   d  = dS
+    float px = pxS
     curLines.clear()
     // open the new trade
     pos := d
@@ -326,6 +394,7 @@ if newSig
     entT := time
     slHit := false
     tpHit := 0
+    hit8 := false
     pkPx := d == 1 ? high : low
     pkBar := bar_index
     trBox := na
@@ -346,6 +415,10 @@ if newSig
             curLines.push(line.new(bar_index, tpPrice(d, px, p), bar_index + 1, tpPrice(d, px, p), color = colTP, width = 2))
         if not oppSlOn
             curLines.push(line.new(bar_index, slPrice(d, px), bar_index + 1, slPrice(d, px), color = colSL, width = 2))
+        if tpPlan == "50 % at +8 %, rest holds"
+            float p8 = tpPrice(d, px, 0.08)
+            curLines.push(line.new(bar_index, p8, bar_index + 1, p8, color = #2e7d32, width = 2, style = line.style_dashed))
+            label.new(bar_index, p8, "TP plan: take 50 % here (+8 %)", style = label.style_label_left, color = #2e7d32, textcolor = color.white, size = szS)
     if dcaOn
         for q in DCA
             float dp = d == 1 ? px * (1 - q) : px * (1 + q)
@@ -353,6 +426,7 @@ if newSig
     pkLbl := label.new(bar_index, pkPx, "", style = d == 1 ? label.style_label_down : label.style_label_up, color = color.new(#43a047, 0), textcolor = color.white, size = szT)
     // first bar's progress (targets can already be reached on the entry candle)
     float fav0 = peakPct(d, px, pkPx)
+    hit8 := fav0 >= 0.08
     while tpHit < nTP and fav0 >= TPS.get(tpHit)
         tpHit += 1
         alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
@@ -366,6 +440,8 @@ else if dir != 0 and not na(ent)
     // 3) track the open trade
     if not slHit
         float fav = peakPct(dir, ent, dir == 1 ? high : low)
+        if fav >= 0.08 and not slNow
+            hit8 := true
         while tpHit < nTP and fav >= TPS.get(tpHit)
             tpHit += 1
             alert("#" + cleanSym() + " | TP " + str.tostring(tpHit) + " reached", alert.freq_once_per_bar)
@@ -397,11 +473,11 @@ if not na(pkLbl) and dir != 0 and not na(ent)
 
 // ─────────────────────────────── 4) Helper: 'Get ready' pill (green Long / red Short, same size as the Long/Short labels)
 if helperOn and tfOK and not newSig
-    if pos != 1 and not na(upL) and armL and high >= upL * (1 - READY_PCT / 100)
+    if pos != 1 and okL and not na(upL) and armL and high >= upL * (1 - READY_PCT / 100)
         label.new(bar_index, low, "▲ Get ready", style = label.style_label_up, color = colL, textcolor = color.white, size = szS)
         alert("#" + cleanSym() + " | Get ready to Long · entry " + fmtPx(upL), alert.freq_once_per_bar)
         armL := false
-    if pos != -1 and not na(dnL) and armS and low <= dnL * (1 + READY_PCT / 100)
+    if pos != -1 and okS and not na(dnL) and armS and low <= dnL * (1 + READY_PCT / 100)
         label.new(bar_index, high, "▼ Get ready", style = label.style_label_down, color = colS, textcolor = color.white, size = szS)
         alert("#" + cleanSym() + " | Get ready to Short · entry " + fmtPx(dnL), alert.freq_once_per_bar)
         armS := false
@@ -440,6 +516,8 @@ drawNext(int d, float e) =>
         // no open trade: entry price and distance from the current price
         float dist = (e / close - 1) * 100
         txt := "Next " + nm + " at " + fmtPx(e) + "\n" + (dist >= 0 ? "+" : "") + str.tostring(dist, "0.0") + "% from price"
+    if trendOn and (d == 1 ? not okL : not okS)
+        txt += "\n(skipped now: " + skipWhy(d) + ")"
     if txt != ""
         nxtLbls.push(label.new(bar_index + PLUS_X + PLUS_W + 2, e, txt, style = label.style_label_left, color = colHl, textcolor = color.white,
              size = szT, textalign = text.align_left, text_font_family = font.family_monospace))
@@ -499,7 +577,7 @@ var table wn = table.new(position.middle_center, 1, 12, border_width = 0)
 if barstate.islast
     wn.clear(0, 0, 0, 11)
     bool bad  = not (tfOK and exchOK and perpOK)
-    bool noPs = not bad and not tickOK and stratEff == O_CUS
+    bool noPs = not bad and not tickOK and (isBask or isCus)
     if not chkOff and (bad or noPs)
         int r = 0
         if bad
@@ -513,10 +591,11 @@ if barstate.islast
                  (perpOK ? "✅ Ticker ends with \".P\"" : "❌ Ticker must end with \".P\" (perpetual futures)"),
                  text_color = color.white, text_size = size.normal, bgcolor = cRed)
             r += 1
-            wn.cell(0, r, tfOK ? "Signals still run with Custom settings; results may differ from the presets." : "Signals and statistics are off until the timeframe is 45 min or lower.", text_color = color.white, text_size = size.small, bgcolor = cRed)
+            wn.cell(0, r, tfOK ? "Signals still run with the Basket strategy; results may differ from the presets." : "Signals and statistics are off until the timeframe is 45 min or lower.", text_color = color.white, text_size = size.small, bgcolor = cRed)
             r += 1
         else
-            wn.cell(0, r, "ℹ No preset for " + coinU + ".P: Custom settings are in use\n(" + str.tostring(nU) + " bars · " + str.tostring(bufU) + " % buffer · " + str.tostring(slU) + " % stop, change them under CUSTOM STRATEGY)\n✅ Timeframe " + str.tostring(timeframe.in_seconds(timeframe.period) / 60) + " min · ✅ " + exch + " · ✅ ends with \".P\"",
+            wn.cell(0, r, "ℹ No preset for " + coinU + ".P: " + (isBask ? "Basket strategy in use\n(640 bars = 20 days · 0 % buffer · 12 % stop · trend filter " + (trendOn ? "ON" : "OFF") + ")" :
+                 "Custom settings are in use\n(" + str.tostring(nU) + " bars · " + str.tostring(bufU) + " % buffer · " + str.tostring(slU) + " % stop, change them under CUSTOM STRATEGY)") + "\n✅ Timeframe " + str.tostring(timeframe.in_seconds(timeframe.period) / 60) + " min · ✅ " + exch + " · ✅ ends with \".P\"",
                  text_color = color.white, text_size = size.normal, bgcolor = cInfo)
             r += 1
         wn.cell(0, r, " ", text_size = size.tiny, bgcolor = color(na))
@@ -525,14 +604,27 @@ if barstate.islast
         r += 1
         wn.cell(0, r, SUP_LIST, text_color = color.white, text_size = size.small, bgcolor = cList, text_halign = text.align_left, text_font_family = font.family_monospace)
         r += 1
-        wn.cell(0, r, "Binance futures · 45 min · other coins: Custom\nSetting \"Hide the chart check\" turns this off", text_color = color.new(color.white, 30), text_size = size.small, bgcolor = cList)
+        wn.cell(0, r, "Binance futures · 45 min · other coins: Basket strategy\nSetting \"Hide the chart check\" turns this off", text_color = color.new(color.white, 30), text_size = size.small, bgcolor = cList)
 
 // ─────────────────────────────── 6) Statistics block
+// realised result of one trade under the chosen TP plan (1×, before fees)
+planR(float r, int tp, bool h8) =>
+    float out = r
+    if tpPlan == "50 % at +8 %, rest holds"
+        out := h8 ? 0.5 * 0.08 + 0.5 * r : r
+    else if tpPlan == "Ladder (equal parts at each TP)" and nTP > 0
+        float got = 0.0
+        int hits = math.min(tp, nTP)
+        if hits > 0
+            for k = 0 to hits - 1
+                got += TPS.get(k) / nTP
+        out := got + (1.0 - float(hits) / nTP) * r
+    out
 emo(float v) => v < 0 ? "🚫" : v < 10 ? "🤔" : v < 20 ? "😚" : v < 30 ? "😎" : v < 50 ? "🙌" : v < 200 ? "🔥" : "🎰"
 var table tb = table.new(statsPos == "Top R" ? position.top_right : statsPos == "Bottom R" ? position.bottom_right : statsPos == "Top L" ? position.top_left : position.bottom_left,
-     1, 117, bgcolor = lightOn ? color.new(#c8e6c9, 0) : statsBg, border_width = 0)
+     1, 130, bgcolor = lightOn ? color.new(#c8e6c9, 0) : statsBg, border_width = 0)
 if barstate.islast
-    tb.clear(0, 0, 0, 116)
+    tb.clear(0, 0, 0, 129)
     if statsOn and tfOK
         // newest first: open trade, then closed trades
         array<int>   lT = array.new<int>()
@@ -545,7 +637,7 @@ if barstate.islast
             lD.push(dir)
             lP.push(shownPct(peakPct(dir, ent, pkPx), slHit, tpHit))
             lW.push(peakPct(dir, ent, pkPx))
-            lR.push((slHit ? -SL : (close / ent - 1) * dir) - feeIn / 100)
+            lR.push(planR(slHit ? -SL : (close / ent - 1) * dir, tpHit, hit8) - feeIn / 100)
         int n = stT.size()
         for k = 0 to math.max(n - 1, 0)
             int i = n - 1 - k
@@ -555,31 +647,70 @@ if barstate.islast
             lD.push(stD.get(i))
             lP.push(shownPct(stPk.get(i), stSl.get(i), stTp.get(i)))
             lW.push(stPk.get(i))
-            lR.push(stR.get(i) - feeIn / 100)
+            lR.push(planR(stR.get(i), stTp.get(i), stH8.get(i)) - feeIn / 100)
         int m = lT.size()
         tb.cell(0, 0, "┌──── Statistics on " + cleanSym() + " ────┐", text_color = txCol, text_size = szSt)
         int row = 1
         if mismatchNote != ""
             tb.cell(0, row, mismatchNote, text_color = lightOn ? #b71c1c : color.yellow, text_size = szSt)
             row += 1
-        // confidence rating: stored per preset (see tooltip), plain bold text, no background
-        string info = inf(key)
-        if info == ""
-            tb.cell(0, row, "No backtest rating: Custom settings", text_color = txCol, text_size = szSt)
+        color dimCol = lightOn ? #4a6b52 : #9fc9a8
+        string SEPL = "────────────────────"
+        // rating: stored per preset (in-sample backtest), plain bold text, no background
+        if statsRate != "Hide rating"
+            string info = inf(key)
+            if isBask
+                tb.cell(0, row, "No backtest rating: Basket strategy", text_color = txCol, text_size = szSt, text_formatting = text.format_bold)
+                row += 1
+                tb.cell(0, row, "Basket on 96 coins: +44% / 2 years · DD 18.5%", text_color = txCol, text_size = szSt)
+                row += 1
+                tb.cell(0, row, "works as a portfolio, not coin by coin", text_color = dimCol, text_size = szSt)
+                row += 1
+            else if info == ""
+                tb.cell(0, row, "No backtest rating: Custom settings", text_color = txCol, text_size = szSt)
+                row += 1
+            else
+                array<string> f = str.split(info, "|")
+                string t = f.get(0)
+                string rs = f.size() > 5 ? f.get(5) : ""
+                tb.cell(0, row, (t == "3" ? "🏆 TOP PICK ★★★" : t == "2" ? "✅ SOLID ★★" : "⚠ CAUTION ★") + " · backtest, in-sample", text_color = txCol, text_size = szSt, text_formatting = text.format_bold)
+                row += 1
+                string y1 = f.get(1)
+                string y2 = f.get(2)
+                tb.cell(0, row, "2024–25 " + (str.startswith(y1, "-") ? "" : "+") + y1 + "% · 2026 " + (str.startswith(y2, "-") ? "" : "+") + y2 + "%\n" +
+                     (rs != "" ? rs : "Worst drawdown " + f.get(3) + "% · profit factor " + f.get(4)), text_color = txCol, text_size = szSt)
+                row += 1
+                tb.cell(0, row, "Past results do not predict the next trade", text_color = dimCol, text_size = szSt)
+                row += 1
+            tb.cell(0, row, SEPL, text_color = txCol, text_size = szSt)
             row += 1
-        else
-            array<string> f = str.split(info, "|")
-            string t = f.get(0)
-            string rs = f.size() > 5 ? f.get(5) : ""
-            tb.cell(0, row, t == "3" ? "🏆 TOP PICK ★★★" : t == "2" ? "✅ SOLID ★★" : "⚠ CAUTION ★", text_color = txCol, text_size = szSt, text_formatting = text.format_bold)
+        // trend filter status
+        if trendOn
+            string cn = str.replace_all(cleanSym(), "USDT", "")
+            tb.cell(0, row, "🧭 Trend filter: ON", text_color = txCol, text_size = szSt, text_formatting = text.format_bold)
             row += 1
-            string y1 = f.get(1)
-            string y2 = f.get(2)
-            tb.cell(0, row, "Tested: 2024–25 " + (str.startswith(y1, "-") ? "" : "+") + y1 + "% · 2026 " + (str.startswith(y2, "-") ? "" : "+") + y2 + "%\n" +
-                 (rs != "" ? rs : "Worst drawdown " + f.get(3) + "% · profit factor " + f.get(4)), text_color = txCol, text_size = szSt)
+            tb.cell(0, row, cn + (coinUp ? " ▲ above" : " ▼ below") + " 15-day EMA · BTC " + (btcUp ? "▲ above" : "▼ below") + " its own", text_color = txCol, text_size = szSt)
             row += 1
-        tb.cell(0, row, "────────────────────", text_color = txCol, text_size = szSt)
-        row += 1
+            tb.cell(0, row, okL ? "→ Longs allowed · Shorts skipped" : okS ? "→ Shorts allowed · Longs skipped" : "→ no trades until both agree",
+                 text_color = okL or okS ? (lightOn ? #1b5e20 : #b9f6ca) : (lightOn ? #e65100 : #ffcc80), text_size = szSt, text_formatting = text.format_bold)
+            row += 1
+            tb.cell(0, row, SEPL, text_color = txCol, text_size = szSt)
+            row += 1
+        // position-size helper for the next trade
+        if sizeOn
+            float volF = na(vNow) or na(vMed) or vNow <= 0 ? 1.0 : math.max(0.5, math.min(2.0, vMed / vNow))
+            float lastR = stR.size() > 0 ? stR.get(stR.size() - 1) : 0.0
+            bool halfNow = halfWin and lastR > 0.10
+            float mult = volF * (halfNow ? 0.5 : 1.0)
+            float capPct = riskPct / (SL * 100) * mult * 100
+            tb.cell(0, row, "⚖️ Suggested size: " + str.tostring(mult, "0.0#") + "× · " + str.tostring(capPct, "0.#") + "% of capital", text_color = txCol, text_size = szSt, text_formatting = text.format_bold)
+            row += 1
+            string vtx = volF < 0.95 ? "volatility above normal" : volF > 1.05 ? "volatility below normal" : "normal volatility"
+            tb.cell(0, row, vtx + " · " + (halfNow ? "last trade " + fmtPct(lastR * 100) + ": half size" : str.tostring(riskPct) + "% risk · stop " + str.tostring(SL * 100, "0.#") + "%"),
+                 text_color = txCol, text_size = szSt)
+            row += 1
+            tb.cell(0, row, SEPL, text_color = txCol, text_size = szSt)
+            row += 1
         float tot = 0.0
         int wins = 0
         int wins15 = 0
@@ -620,7 +751,7 @@ if barstate.islast
             tb.cell(0, row, "💎 ACCURACY last " + str.tostring(n15) + ": " + str.tostring(acc15, "0") + "% " + (acc15 >= 85 ? "📈 excellent" : acc15 >= 70 ? "📈 good" : "📉 weak"), text_color = txCol, text_size = szSt)
             row += 1
             if realOn
-                tb.cell(0, row, "Realised (stop or next signal, 1×, fees " + str.tostring(feeIn) + "%):\nwins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
+                tb.cell(0, row, "Realised (" + (tpPlan == "50 % at +8 %, rest holds" ? "TP plan 50% @ +8%" : tpPlan == "Ladder (equal parts at each TP)" ? "TP ladder" : "stop or next signal") + ", 1×, fees " + str.tostring(feeIn) + "%):\nwins " + str.tostring(100.0 * realW / m, "0") + "% · net " + fmtPct((eq - 1) * 100) + " · max DD " + str.tostring(maxDD * 100, "0.0") + "%",
                      text_color = lightOn ? #b71c1c : color.yellow, text_size = szSt)
                 row += 1
         tb.cell(0, row, "└──────────────────┘", text_color = txCol, text_size = szSt)

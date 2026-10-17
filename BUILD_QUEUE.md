@@ -7,17 +7,13 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **OG X v.2.4.4 + Alerts** (16 Oct 2026). Next build: v.2.4.5 (P1 items 1–5).
+Current release: **OG X v.2.4.5 + Alerts** (17 Oct 2026). Next build: nothing queued.
 
 ## P0: bugs and fixes
 _Empty._
 
-## P1: agreed features for v.2.4.5 (approved 17 Oct 2026; mocks `research/mocks/proposed/lab_1_chart_zec.png`, `lab_2_settings_basket.png`; evidence `research/LAB_2026-10-17.md`)
-1. **Honest rating wording.** Rating line reads "✅ SOLID ★★ · backtest, in-sample" with the line "Past results do not predict the next trade" under the numbers; same note in the Strategy tooltip. Setting "Rating label".
-2. **Trend filter** (new FILTERS group): "Trend filter (coin + BTC, 15-day EMA)" with Auto / On / Off. Auto = on for Basket and Custom, off for presets. Longs only when the coin's close and BTC's close are above their 15-day EMA (480 × 45m bars); Shorts only when both are below. A skipped signal still closes the opposite position. Chart: grey "Long skipped · BTC trend ✕" (or coin trend) tag; table: filter status rows (coin ▲/▼, BTC ▲/▼, → which side is allowed).
-3. **"Basket (any coin)" strategy** in the menu: 640 bars (20 days), 0 % buffer, 12 % stop, trend filter on. Auto uses it for coins without a preset (replaces Custom as the Auto fallback); the blue chart-check note and the table say "Basket strategy in use" / "No backtest rating: Basket strategy · works as a portfolio, not coin by coin".
-4. **Position-size helper** (new POSITION SIZE group): "Show suggested size in the statistics", "Half size after a win above +10 %", "Risk per trade %" (default 1.0). Suggested size = risk % ÷ stop distance, scaled by volatility (recent ATR % vs its own median, clipped 0.5–2×), halved after a > +10 % win.
-5. **TP plan** (new TAKE-PROFIT PLAN group): Hold (default) · 50 % at +8 %, rest holds · Ladder (statistics only). With "50 % at +8 %": green line at +8 % labelled "TP plan: take 50 % here (+8 %)", and the realised line uses the plan.
+## P1: agreed features
+_Empty._
 
 ## P2: ideas
 - **Northline bot alerts, same as OG Shot (parked 16 Oct 2026).** Send OG Shot's JSON so the Northline bot / mini app can trade OG X signals.
@@ -46,6 +42,13 @@ _Empty._
   - Purpose: cross-check our Python backtests on TradingView's own data, and let the user test any coin, preset or TP plan in the Strategy Tester.
   - Python check (17 Oct 2026, 40 presets, 1×, fees): median net per coin Hold +195 % (DD 44 %), Half at TP3 +110 % (DD 28 %), All out at TP5 +102 % (DD 31 %), Ladder 20 % +22 % (DD 18 %), All out at TP1 −17 % (1/40 profitable). Data: `research/tp_ladder_test.csv`.
   - Note: strategies cannot use `alertcondition`, which is one reason OG X itself stays an indicator. TradingView's 45m history may be shorter than our two years unless Deep Backtesting is used.
+
+## Shipped in v.2.4.5 (17 Oct 2026) (approved 17 Oct 2026; mocks `research/mocks/lab_1_chart_zec.png`, `lab_2_settings_basket.png`; evidence `research/LAB_2026-10-17.md`)
+1. **Honest rating wording.** Rating line reads "✅ SOLID ★★ · backtest, in-sample" with the line "Past results do not predict the next trade" under the numbers; same note in the Strategy tooltip. Setting "Rating label".
+2. **Trend filter** (new FILTERS group): "Trend filter (coin + BTC, 15-day EMA)" with Auto / On / Off. Auto = on for Basket and Custom, off for presets. Longs only when the coin's close and BTC's close are above their 15-day EMA (480 × 45m bars); Shorts only when both are below. A skipped signal still closes the opposite position. Chart: grey "Long skipped · BTC trend ✕" (or coin trend) tag; table: filter status rows (coin ▲/▼, BTC ▲/▼, → which side is allowed).
+3. **"Basket (any coin)" strategy** in the menu: 640 bars (20 days), 0 % buffer, 12 % stop, trend filter on. Auto uses it for coins without a preset (replaces Custom as the Auto fallback); the blue chart-check note and the table say "Basket strategy in use" / "No backtest rating: Basket strategy · works as a portfolio, not coin by coin".
+4. **Position-size helper** (new POSITION SIZE group): "Show suggested size in the statistics", "Half size after a win above +10 %", "Risk per trade %" (default 1.0). Suggested size = risk % ÷ stop distance, scaled by volatility (recent ATR % vs its own median, clipped 0.5–2×), halved after a > +10 % win.
+5. **TP plan** (new TAKE-PROFIT PLAN group): Hold (default) · 50 % at +8 %, rest holds · Ladder (statistics only). With "50 % at +8 %": green line at +8 % labelled "TP plan: take 50 % here (+8 %)", and the realised line uses the plan.
 
 ## Shipped in v.2.4.4 (16 Oct 2026)
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
