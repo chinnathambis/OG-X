@@ -131,3 +131,20 @@ Binance futures 15m → 45m, Oct 2024 – Oct 2026, 1×, fees 0.08 %, exit at th
 - **Per-coin tuning** (tuned on 2024–25, 2026 test, same pass rule as round 1, training ≥ +20 %): 22 pass.
   - New coins only via tuning: S (+333 % in 2026, DD 21 %), XLM, KAIA, AR (8 test trades), TRX (10 test trades).
   - SAND: tuned 660 / 1 % / 8 % (2026 +23 %, DD 22 %) instead of the original v2.2 (DD 67 %).
+
+## Predictum X: full Telegram export (17 Oct 2026)
+Source: the public channel export (`ChatExport_2026-10-17`, Apr 2020 – May 2026), parsed with `tools/parse_telegram_export.py`. Predictum X era: **31 signals, 12 Oct 2025 – 25 May 2026**, all Bybit 45m, 30 Longs + 1 Short (`research/x/x_signals_full.csv`). Bybit 15m data: 30 coins (SERAPH has no Bybit data; FORTH's data starts after its signal).
+- **Signal format is fixed.** TPs = +1 / 2 / 3 / 4 / 8 / 20 % from the current price on every signal. DCA = −7 / −15 / −25 % on every Long. The Short's stop is +8 % ("SL … or DCA"). Channel "Profit +10 % … +200 %" = those TPs at 10×.
+- **The channel only posts wins.** Every follow-up is "TP x ✅"; no stop or loss is reported in 7 months.
+- **Engine: confirmed the same channel breakout.** One setting, **200 bars + 0.9 % buffer**, fires a fresh breakout (no touch in the 8 candles before) on exactly the signal candle for **23 of 29** checkable signals. A random candle passes this test 0.55 % of the time, so chance would give about 0.2 matches. 200 bars / 0.6–0.8 % gives 22. Misses: TAO (fits 220–240 bars), ACE (310–390, and 200/0.9 fires one candle earlier), FLR, XCN (250–450), GUN (90–250, 0 % buffer), and MUBARAK (12 Oct 2025, a rebound after the 10 Oct crash, not a breakout).
+- **Real outcomes (30 days after each signal, 1×, no fees; `research/x/x_outcomes_full.csv`, `tools/x_outcomes.py`), 29 signals:**
+
+  | | TP1 | TP2 | TP3 | TP4 | TP5 | TP6 |
+  |---|---|---|---|---|---|---|
+  | Reached at some point | 29 | 27 | 25 | 24 | 21 | 12 |
+  | Reached before a −8 % drop | 26 | 24 | 22 | 18 | 13 | 5 |
+
+  - 27 of 29 fell 8 % below entry at some point within 30 days, and 21 of 29 fell past DCA3 (−25 %). Median peak +15 %, median worst −32 %.
+  - With an 8 % stop: 1/6 at each TP → −0.6 % per trade on average (13/29 profitable). All out at TP1 → +2 % in total over 29 trades. All out at TP4 → −16 %. All out at TP5 → −24 %.
+  - **"Strategy score" does not predict anything:** rank correlation with the peak 0.05, with TPs before −8 % 0.01. Score ≥ 10: median peak +24 %, 3.6 TPs; score < 10: +12 %, 3.8 TPs.
+- **Conclusion.** Predictum X is the same 45m channel-breakout engine as Predictum v2 / OG X, run on small Bybit coins with a ~200-bar channel and a tight TP ladder. Its posted "accuracy" comes from TP1 at +1 % (almost always touched) and from only posting wins. The real edge on these signals, as traded with its own TPs, is about zero. OG X's own presets (hold to stop or next signal, tested per coin) are the better use of the engine.
