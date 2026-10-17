@@ -7,17 +7,17 @@
 - **P1:** agreed feature.
 - **P2:** idea, not decided yet. Needs a yes before it moves up.
 
-Current release: **OG X v.2.4.4 + Alerts** (16 Oct 2026). Next build: P1.
+Current release: **OG X v.2.4.4 + Alerts** (16 Oct 2026). Next build: v.2.4.5 (P1 items 1–5).
 
 ## P0: bugs and fixes
 _Empty._
 
-## P1: agreed features
-1. **Strategy type "SL" / "DCA + SL"** (Predictum PRO).
-   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
-   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
-   - Tooltip: low leverage only (1–2×).
-   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
+## P1: agreed features for v.2.4.5 (approved 17 Oct 2026; mocks `research/mocks/proposed/lab_1_chart_zec.png`, `lab_2_settings_basket.png`; evidence `research/LAB_2026-10-17.md`)
+1. **Honest rating wording.** Rating line reads "✅ SOLID ★★ · backtest, in-sample" with the line "Past results do not predict the next trade" under the numbers; same note in the Strategy tooltip. Setting "Rating label".
+2. **Trend filter** (new FILTERS group): "Trend filter (coin + BTC, 15-day EMA)" with Auto / On / Off. Auto = on for Basket and Custom, off for presets. Longs only when the coin's close and BTC's close are above their 15-day EMA (480 × 45m bars); Shorts only when both are below. A skipped signal still closes the opposite position. Chart: grey "Long skipped · BTC trend ✕" (or coin trend) tag; table: filter status rows (coin ▲/▼, BTC ▲/▼, → which side is allowed).
+3. **"Basket (any coin)" strategy** in the menu: 640 bars (20 days), 0 % buffer, 12 % stop, trend filter on. Auto uses it for coins without a preset (replaces Custom as the Auto fallback); the blue chart-check note and the table say "Basket strategy in use" / "No backtest rating: Basket strategy · works as a portfolio, not coin by coin".
+4. **Position-size helper** (new POSITION SIZE group): "Show suggested size in the statistics", "Half size after a win above +10 %", "Risk per trade %" (default 1.0). Suggested size = risk % ÷ stop distance, scaled by volatility (recent ATR % vs its own median, clipped 0.5–2×), halved after a > +10 % win.
+5. **TP plan** (new TAKE-PROFIT PLAN group): Hold (default) · 50 % at +8 %, rest holds · Ladder (statistics only). With "50 % at +8 %": green line at +8 % labelled "TP plan: take 50 % here (+8 %)", and the realised line uses the plan.
 
 ## P2: ideas
 - **Northline bot alerts, same as OG Shot (parked 16 Oct 2026).** Send OG Shot's JSON so the Northline bot / mini app can trade OG X signals.
@@ -46,14 +46,6 @@ _Empty._
   - Purpose: cross-check our Python backtests on TradingView's own data, and let the user test any coin, preset or TP plan in the Strategy Tester.
   - Python check (17 Oct 2026, 40 presets, 1×, fees): median net per coin Hold +195 % (DD 44 %), Half at TP3 +110 % (DD 28 %), All out at TP5 +102 % (DD 31 %), Ladder 20 % +22 % (DD 18 %), All out at TP1 −17 % (1/40 profitable). Data: `research/tp_ladder_test.csv`.
   - Note: strategies cannot use `alertcondition`, which is one reason OG X itself stays an indicator. TradingView's 45m history may be shorter than our two years unless Deep Backtesting is used.
-
-- **Proposals from the research lab (17 Oct 2026, `research/LAB_2026-10-17.md`). Each needs a yes before it moves up.**
-  1. **Honest rating wording.** The ★ ratings and "Tested 2026" lines are in-sample (2026 was used to pick the presets), and past results per coin barely predict future results. Reword to "Backtest (in-sample)" and add a line in the tooltip.
-  2. **Trend filter setting** (on by default for Custom, optional for presets): Longs only when the coin is above its 15-day EMA and BTC is above its own; Shorts only when both are below. Robust across coins and both periods.
-  3. **"Basket" strategy** for coins without a preset: 640-bar channel (20 days), 0 % buffer, 12 % stop, trend filter on. Basket result on 96 coins: +44 % / 2 years, DD 18.5 %, positive in both periods.
-  4. **Position-size helper** in the stats table: suggested size ∝ 1 / volatility, and half size after a > +10 % win.
-  5. **Partial take at +8 %** as a TP-plan option (50 % off, hold the rest): same profit, drawdown 45 → 35 %.
-  6. **Drop or park P1 "DCA + SL"**: DCA lowered return per unit of drawdown from 1.7 to 0.8 on the presets.
 
 ## Shipped in v.2.4.4 (16 Oct 2026)
 1. **Chart check, like Predictum's warning but showing what is wrong** (approved 16 Oct 2026; mock `research/mocks/approved/v243_chart_check.png`).
@@ -193,5 +185,10 @@ Kept as the build record. Approved mocks: `research/mocks/README.md`.
    - The ⚠ (SUI, UNI, ARB) is kept out of the name so the legend stays clean. It appears in the input tooltip and as a small note in the stats table.
 
 ## Dropped
+- **Strategy type "SL" / "DCA + SL"** (old P1 #1; parked 17 Oct 2026 after the lab: DCA lowered return per unit of drawdown from 1.7 to 0.8 on the presets). Original spec: "SL" / "DCA + SL"** (Predictum PRO).
+   - Enter with ¼, add ¼ at −7 / −15 / −25 %. TPs are counted from the average price. The final stop sits 8 % beyond the last level. The trade is held until the opposite signal or the stop.
+   - Stats: full-capital results, averaging buys used per trade, and the worst-case loss (~22 % of capital).
+   - Tooltip: low leverage only (1–2×).
+   - Backtest Oct 2024 – Oct 2026: ETH 450 +42 % (DD 11 %) vs fixed stop +141 % (DD 29 %); BTC 210 +2 % (DD 12 %) vs −23 % (DD 42 %).
 - **Next-signal trailing line / "◀ EXIT" stub (old P1 #1, 15 Oct 2026):** replaced by the opposite "+" and its blue bubble in P0 #2.
 - **Move the stop to entry after +3 %** (15 Oct 2026): Predictum's take-profits are tight (0.3 / 1 / 2 / 3 %), so +3 % is already TP4. A breakeven stop there would cut trades inside the TP ladder.
