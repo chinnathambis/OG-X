@@ -15,7 +15,7 @@ Original Pine v6 channel-breakout indicator (45m), clean-room study of Predictum
 ## Saving usage (owner, 1 Nov 2026: "take control on usage")
 Claude manages this; the owner doesn't have to.
 - **One topic per chat.** When a topic is done or a chat gets long (many hours, big files read, or after one squeeze-down), say so in one line and suggest a fresh chat with a ready one-line starter (e.g. "Mock P1-33 from BUILD_QUEUE"). Keep `CLAUDE.md` and the build list current so a fresh chat needs nothing else.
-- **Chat names keep one series:** a new chat is named **Northline · Chat N · topic** (next number, see `docs/CHATS.md` in northline-bot). When suggesting a fresh chat, give its name and starter line; the new chat adds its row to `docs/CHATS.md`.
+- **Chat names:** the main chat keeps its name as it is. Every new chat is named **OG X · Chat N · topic** (next N from `CHATS.md`). When suggesting a fresh chat, give its full name and first line; the new chat adds its row to `CHATS.md`.
 - **Read narrowly:** grep or read the few lines needed; never whole large files (`.pine`, `index.html`, `trader.py`) unless the task needs them; don't re-read what is already in the chat.
 - **Mocks:** one round, at most 2 options, phone size, real code + sample data; small changes are described in words, not re-rendered. Re-render only after the owner's full review list.
 - **Answers:** short by default; detail when asked or when money or trading is at stake.
